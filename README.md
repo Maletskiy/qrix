@@ -1,5 +1,7 @@
 # Qrix
 
+[![CI](https://github.com/Maletskiy/qrix/actions/workflows/ci.yml/badge.svg)](https://github.com/Maletskiy/qrix/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-d1fe17.svg)](LICENSE)
+
 A QR code generator for crypto payments, links, text, Wi-Fi and contact cards — with a design system that does not destroy scannability.
 
 **“There is no square. There is code.”** — the QR code is formally a matrix of modules, even though we see a grid of squares. The name is a nod to that.
