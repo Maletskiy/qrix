@@ -8,3 +8,4 @@ scripts/verify.mjs
 .vercel
 .vercel-cli
 .env*
+*.tsbuildinfo
