@@ -390,27 +390,30 @@ export function Toggle({
   label: string;
   hint?: string;
 }) {
-  // Метка последнего переключения самим тумблером. Нужна из-за перескока
-  // макета: когда из-за переключения меняется высота секции, браузер отдаёт
-  // click уже не тумблеру, а всей строке — и срабатывало второе переключение.
-  const switchAt = useRef(0);
+  // Где началось нажатие. Строка слушает pointerup, а не click: на тач-
+  // устройствах браузер присылает click с задержкой, и если из-за
+  // переключения макет уже съехал, click прилетает по строке — получалось
+  // второе срабатывание, и тумблер «не выключался».
+  const fromSwitch = useRef(false);
 
   return (
     <div
       className="toggle"
-      onClick={() => {
-        if (Date.now() - switchAt.current < 350) return;
+      onPointerDown={(e) => {
+        fromSwitch.current = !!(e.target as HTMLElement).closest(".toggle__switch");
+      }}
+      onPointerUp={() => {
+        if (fromSwitch.current) {
+          fromSwitch.current = false;
+          return;
+        }
         onChange(!checked);
       }}
     >
-      {/* по самому переключателю не всплываем — иначе клик сработает дважды */}
-      <span className="toggle__switch" onClick={(e) => e.stopPropagation()}>
+      <span className="toggle__switch">
         <SquishSwitch
           checked={checked}
-          onChange={(next: boolean) => {
-            switchAt.current = Date.now();
-            onChange(next);
-          }}
+          onChange={onChange}
           width={56}
           height={32}
           radius={16}
