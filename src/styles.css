@@ -1967,6 +1967,7 @@ select.input {
     border-radius: 0.7rem;
     border: 1px solid var(--line-strong);
     background: #fff;
+    overflow: hidden; /* скругляем и содержимое, а не только рамку */
     cursor: pointer;
   }
 

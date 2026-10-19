@@ -93,7 +93,7 @@ export default function Preview({ svg, payload, config, error }: Props) {
         ) : payload.value.trim() ? (
           <div
             className="preview__canvas"
-            style={config.style.bgTransparent ? { backgroundImage: "var(--checker)" } : undefined}
+            style={config.style.bgTransparent ? { background: "var(--checker)" } : undefined}
             dangerouslySetInnerHTML={{ __html: svg }}
           />
         ) : (
@@ -124,6 +124,14 @@ export default function Preview({ svg, payload, config, error }: Props) {
           className={"preview__jump" + (payload.value.trim() && !error ? "" : " is-empty")}
           aria-label={t("preview.jumpToCode")}
           title={t("preview.jumpToCode")}
+          /* фон миниатюры = фон кода: иначе поля вокруг кода видны другим цветом */
+          style={
+            payload.value.trim() && !error
+              ? config.style.bgTransparent
+                ? { background: "var(--checker)" }
+                : { backgroundColor: config.style.bgColor }
+              : undefined
+          }
           onClick={() => stageRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })}
         >
           {payload.value.trim() && !error ? (
