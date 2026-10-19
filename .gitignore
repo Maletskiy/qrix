@@ -1,0 +1,10 @@
+node_modules
+dist
+.chrome-profile
+samples
+*.local
+.DS_Store
+scripts/verify.mjs
+.vercel
+.vercel-cli
+.env*

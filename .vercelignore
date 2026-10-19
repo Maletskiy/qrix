@@ -1,0 +1,7 @@
+node_modules
+dist
+samples
+.chrome-profile
+scripts/verify.mjs
+tsconfig.tsbuildinfo
+.env.local
