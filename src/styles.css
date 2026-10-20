@@ -1986,6 +1986,34 @@ select.input {
   display: none;
 }
 
+/* на десктопе блок повторяет плашку: полные подписи без группы, два в ряд */
+@media (min-width: 701px) {
+  .preview__actions .preview__action-label {
+    display: none;
+  }
+
+  .preview__actions .preview__action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .preview__actions .btn-label--short {
+    display: none;
+  }
+
+  .preview__actions .btn-label--full {
+    display: inline;
+  }
+
+  .preview__actions .preview__action-row .btn {
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    padding-inline: 0.6rem;
+  }
+}
+
 /* миниатюра-якорь живёт в плашке */
 .preview__jump {
   display: flex;
