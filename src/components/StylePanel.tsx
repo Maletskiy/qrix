@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CAPTION_FONTS, PALETTES } from "../lib/config";
 import type { QrConfig, StyleState } from "../lib/config";
 import type { DotStyle, EyeBallStyle, EyeFrameStyle, GradientKind } from "../lib/render";
@@ -40,6 +40,20 @@ export default function StylePanel({ config, onChange }: Props) {
     }
     set({ logo: await readFileAsDataUrl(file) });
   };
+
+  // Пока идёт анимация раскрытия подписи, содержимое обрезается по высоте.
+  // Как только она закончилась, обрезку снимаем — иначе выпадающая палитра
+  // цвета подписи остаётся за границей clip-контейнера и не видна.
+  const [captionAnimating, setCaptionAnimating] = useState(false);
+  const prevCaption = useRef(style.caption.enabled);
+  useEffect(() => {
+    if (prevCaption.current === style.caption.enabled) return;
+    prevCaption.current = style.caption.enabled;
+    setCaptionAnimating(true);
+    // страховка на случай, если transitionend не придёт
+    const timer = window.setTimeout(() => setCaptionAnimating(false), 400);
+    return () => window.clearTimeout(timer);
+  }, [style.caption.enabled]);
 
   const decorative = DECORATIVE_DOTS.includes(style.dotStyle);
   const isDots = style.dotStyle === "dots";
@@ -111,7 +125,7 @@ export default function StylePanel({ config, onChange }: Props) {
 
           <AutoHeight>
           {style.fillMode === "gradient" ? (
-            <>
+            <div className="stack">
               {/* слева — готовые пресеты, справа — направление градиента */}
               <div className="gradient-grid">
                 <div className="field">
@@ -187,7 +201,7 @@ export default function StylePanel({ config, onChange }: Props) {
                   onChange={(v) => set({ bgColor: v })}
                 />
               </div>
-            </>
+            </div>
           ) : (
             <div className="grid-2">
               <ColorField
@@ -281,7 +295,18 @@ export default function StylePanel({ config, onChange }: Props) {
           />
           {/* Содержимое подписи всегда смонтировано: так его можно плавно
               раскрыть по высоте, а значения полей не теряются */}
-          <div className={"reveal" + (style.caption.enabled ? " is-open" : "")}>
+          <div
+            className={
+              "reveal" +
+              (style.caption.enabled ? " is-open" : "") +
+              (captionAnimating ? " is-animating" : "")
+            }
+            onTransitionEnd={(e) => {
+              if (e.target === e.currentTarget && e.propertyName === "grid-template-rows") {
+                setCaptionAnimating(false);
+              }
+            }}
+          >
             <div className="reveal__clip">
               <div className="reveal__inner stack">
               <Field label={t("style.captionText")}>

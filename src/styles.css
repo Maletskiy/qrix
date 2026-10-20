@@ -317,7 +317,13 @@ textarea {
 
 .reveal__clip {
   min-height: 0;
-  overflow: hidden;
+  overflow: hidden; /* нужно только на время анимации раскрытия */
+}
+
+/* В раскрытом состоянии обрезка выключена, иначе выпадающая палитра цвета
+   подписи обрезается контейнером и выглядит как «не открывается». */
+.reveal.is-open:not(.is-animating) .reveal__clip {
+  overflow: visible;
 }
 
 .reveal__inner {

@@ -9,3 +9,4 @@ scripts/verify.mjs
 .vercel-cli
 .env*
 *.tsbuildinfo
+.npm-cache
