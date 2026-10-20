@@ -138,7 +138,7 @@ function ClearButton({ onClear }: { onClear: () => void }) {
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClear}
     >
-      <svg width="0.7em" height="0.7em" viewBox="0 0 24 24" aria-hidden="true">
+      <svg width="0.6em" height="0.6em" viewBox="0 0 24 24" aria-hidden="true">
         <path
           d="M6 6l12 12M18 6L6 18"
           fill="none"
