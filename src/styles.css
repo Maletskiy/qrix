@@ -1928,8 +1928,7 @@ select.input {
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  /* ширина до ~640px, но не ближе 40px к краям экрана */
-  width: min(33.4rem, calc(100vw - 4.2rem));
+  width: min(40rem, calc(100vw - 2rem));
   padding: 0.6rem;
   background: rgba(15, 17, 19, 0.94);
   backdrop-filter: blur(16px);
