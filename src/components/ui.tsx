@@ -122,13 +122,30 @@ export function Section({
 
 /** Кнопка «Вставить»: подставляет текст из буфера обмена в поле. */
 export function PasteButton({ onValue }: { onValue: (text: string) => void }) {
+  const btnRef = useRef<HTMLButtonElement | null>(null);
+
+  const fieldInput = () =>
+    btnRef.current?.closest(".field")?.querySelector("input, textarea") as
+      | HTMLInputElement
+      | HTMLTextAreaElement
+      | null;
+
   const paste = async () => {
     const text = await readClipboard();
-    if (text) onValue(text.trim());
+
+    if (text) {
+      onValue(text.trim());
+      // фокус нужен, чтобы поле показало полный вид значения, а не сокращённый
+      fieldInput()?.focus();
+      return;
+    }
+
+    // браузер не дал прочитать буфер — ставим курсор в поле, чтобы вставить вручную
+    fieldInput()?.focus();
   };
 
   return (
-    <button type="button" className="field__paste" onClick={paste}>
+    <button ref={btnRef} type="button" className="field__paste" onClick={paste}>
       {t("field.paste")}
     </button>
   );

@@ -7,6 +7,16 @@ import { useState } from "react";
 import CoinSheet from "./CoinSheet";
 import { Field, PasteButton, Section, Segmented, Toggle } from "./ui";
 
+/**
+ * Длинный адрес в нефокусе показываем укороченным: «начало ••• конец».
+ * В фокусе возвращается полный вид, чтобы можно было править.
+ */
+function shortenMiddle(value: string, head = 4, tail = 4): string {
+  const v = value.trim();
+  if (v.length <= head + tail + 6) return v;
+  return `${v.slice(0, head)} ••• ${v.slice(-tail)}`;
+}
+
 type Props = {
   config: QrConfig;
   onChange: (patch: Partial<QrConfig>) => void;
@@ -14,6 +24,7 @@ type Props = {
 
 export default function ContentPanel({ config, onChange }: Props) {
   const [coinSheet, setCoinSheet] = useState(false);
+  const [addressFocused, setAddressFocused] = useState(false);
   const coin = coinById(config.crypto.coinId);
   const addressState = checkAddress(coin, config.crypto.address);
   const schemeIsFixed = coin.uri === "none";
@@ -96,10 +107,14 @@ export default function ContentPanel({ config, onChange }: Props) {
               <div className="input-with-state">
                 <input
                   className="input input--mono"
-                  value={config.crypto.address}
+                  value={
+                    addressFocused ? config.crypto.address : shortenMiddle(config.crypto.address)
+                  }
                   placeholder={coin.placeholder}
                   spellCheck={false}
                   autoComplete="off"
+                  onFocus={() => setAddressFocused(true)}
+                  onBlur={() => setAddressFocused(false)}
                   onChange={(e) => setCrypto({ address: e.target.value })}
                 />
                 {addressState !== "empty" && (

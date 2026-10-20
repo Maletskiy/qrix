@@ -84,7 +84,10 @@ export default function Preview({ svg, payload, config, error }: Props) {
 
   return (
     <div className="preview">
-      <div className="preview__stage" ref={stageRef}>
+      <div
+        className={"preview__stage" + (payload.value.trim() && !error ? "" : " preview__stage--empty")}
+        ref={stageRef}
+      >
         {error ? (
           <div className="preview__error">
             <strong>{t("preview.errorTitle")}</strong>
