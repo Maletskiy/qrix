@@ -179,7 +179,14 @@ export default function Preview({ svg, payload, config, error }: Props) {
               onClick={handlePng}
               disabled={!payload.value || !!error || busy === "png"}
             >
-              {busy === "png" ? t("preview.busy") : "PNG"}
+              {busy === "png" ? (
+                t("preview.busy")
+              ) : (
+                <>
+                  <span className="btn-label btn-label--short">PNG</span>
+                  <span className="btn-label btn-label--full">{t("preview.downloadPng")}</span>
+                </>
+              )}
             </button>
             <button
               type="button"
@@ -192,7 +199,8 @@ export default function Preview({ svg, payload, config, error }: Props) {
               }}
               disabled={!payload.value || !!error}
             >
-              SVG
+              <span className="btn-label btn-label--short">SVG</span>
+              <span className="btn-label btn-label--full">{t("preview.downloadSvg")}</span>
             </button>
           </div>
 
@@ -206,7 +214,14 @@ export default function Preview({ svg, payload, config, error }: Props) {
               onClick={handleCopyPng}
               disabled={!payload.value || !!error || busy === "copy"}
             >
-              {busy === "copy" ? t("preview.busy") : "PNG"}
+              {busy === "copy" ? (
+                t("preview.busy")
+              ) : (
+                <>
+                  <span className="btn-label btn-label--short">PNG</span>
+                  <span className="btn-label btn-label--full">{t("preview.copyPng")}</span>
+                </>
+              )}
             </button>
             <button
               type="button"
@@ -218,7 +233,8 @@ export default function Preview({ svg, payload, config, error }: Props) {
               }
               disabled={!payload.value || !!error}
             >
-              SVG
+              <span className="btn-label btn-label--short">SVG</span>
+              <span className="btn-label btn-label--full">{t("preview.copySvg")}</span>
             </button>
           </div>
         </div>

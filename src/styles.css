@@ -249,8 +249,8 @@ textarea {
 }
 
 .layout__preview {
-  position: sticky;
-  top: 1.5rem;
+  /* без sticky: высокий блок не влезал в экран ноутбука */
+  position: static;
 }
 
 /* Всё, что уже не помещается в две колонки, выстраивается в одну — и в этом
@@ -1939,7 +1939,16 @@ select.input {
   min-width: 3.4rem;
 }
 
-/* миниатюра-якорь нужна только на телефоне, где кнопки уезжают в плашку */
+/* Подписи кнопок: на десктопе полные, на телефоне короткие (PNG/SVG). */
+.btn-label--short {
+  display: none;
+}
+
+.btn-label--full {
+  display: inline;
+}
+
+/* миниатюра-якорь: показывается там, где кнопки уезжают в нижнюю плашку */
 .preview__jump {
   display: none;
 }
@@ -2058,6 +2067,80 @@ select.input {
   width: 100%;
 }
 
+/* ---------- плашка с действиями (десктоп) ---------- */
+
+@media (min-width: 701px) {
+  .app {
+    padding-bottom: 6.5rem;
+  }
+
+  .preview__actions {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.6rem clamp(1rem, 3vw, 2rem) calc(0.6rem + env(safe-area-inset-bottom, 0px));
+    background: rgba(15, 17, 19, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--line);
+    flex-wrap: nowrap;
+  }
+
+  .preview__jump {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 3.2rem;
+    height: 3.2rem;
+    padding: 0.2rem;
+    border-radius: 0.6rem;
+    border: 1px solid var(--line-strong);
+    background: #fff;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .preview__jump.is-empty {
+    background: rgba(255, 255, 255, 0.06);
+    border-style: dashed;
+  }
+
+  /* одна строка: четыре кнопки без групповых подписей */
+  .preview__action-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+    flex: 1 1 auto;
+  }
+
+  .preview__action-label {
+    display: none;
+  }
+
+  .btn-label--short {
+    display: none;
+  }
+
+  .btn-label--full {
+    display: inline;
+  }
+
+  .preview__action-row .btn {
+    height: 2.6rem;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    padding-inline: 0.6rem;
+  }
+}
+
 /* ---------- мобильная плашка с действиями ---------- */
 
 @media (max-width: 700px) {
@@ -2095,6 +2178,15 @@ select.input {
   }
 
   /* подпись по контенту (hug), кнопки делят остаток (fill) */
+  /* на телефоне кнопки узкие — оставляем короткие подписи PNG/SVG */
+  .btn-label--short {
+    display: inline;
+  }
+
+  .btn-label--full {
+    display: none;
+  }
+
   .preview__action-label {
     margin-right: 0;
     font-size: 0.68rem;
