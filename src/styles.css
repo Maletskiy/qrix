@@ -400,8 +400,8 @@ textarea {
   transform: translateY(-50%);
   display: grid;
   place-items: center;
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 1.25rem; /* 24px */
+  height: 1.25rem;
   padding: 0;
   border: 0;
   border-radius: 999px;
@@ -409,6 +409,11 @@ textarea {
   color: var(--ink);
   cursor: pointer;
   transition: background 0.15s ease;
+}
+
+.input-wrap__clear svg {
+  width: 0.834rem; /* 16px */
+  height: 0.834rem;
 }
 
 .input-wrap__clear:hover {
