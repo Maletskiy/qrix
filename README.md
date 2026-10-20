@@ -215,3 +215,4 @@ src/
 ---
 
 Made by [Maletskiy Design](https://maletskiy-design.ru) · [Русская версия README](README.ru.md)
+<!-- preview deployment check -->
