@@ -100,7 +100,11 @@ export default function App() {
               <span
                 className="lang__thumb"
                 aria-hidden="true"
-                style={{ transform: `translateX(${langThumb.left}px)`, width: langThumb.width }}
+                style={{
+                  transform: `translate(${langThumb.left}px, ${langThumb.top}px)`,
+                  width: langThumb.width,
+                  height: langThumb.height,
+                }}
               />
             )}
             {LANGS.map((item) => (

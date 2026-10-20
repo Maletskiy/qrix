@@ -335,12 +335,14 @@ export function Field({
  * Позиция и ширина активного элемента внутри контейнера — для скользящей
  * подложки. Пересчитывается при смене активного значения и ресайзе.
  */
+export type ThumbBox = { left: number; top: number; width: number; height: number };
+
 export function useSlidingThumb(
   ref: RefObject<HTMLElement | null>,
   activeSelector: string,
   deps: unknown[]
-): { left: number; width: number } | null {
-  const [thumb, setThumb] = useState<{ left: number; width: number } | null>(null);
+): ThumbBox | null {
+  const [thumb, setThumb] = useState<ThumbBox | null>(null);
 
   useEffect(() => {
     const el = ref.current;
@@ -352,7 +354,16 @@ export function useSlidingThumb(
         setThumb(null);
         return;
       }
-      setThumb({ left: active.offsetLeft, width: active.offsetWidth });
+      // считаем от рамки контейнера: у многострочных вариантов активный
+      // элемент стоит в своём ряду, и плашка должна совпадать с ним
+      const box = el.getBoundingClientRect();
+      const item = active.getBoundingClientRect();
+      setThumb({
+        left: item.left - box.left - el.clientLeft,
+        top: item.top - box.top - el.clientTop,
+        width: item.width,
+        height: item.height,
+      });
     };
 
     measure();
@@ -407,7 +418,11 @@ export function Segmented<T extends string>({
         <span
           className="segmented__thumb"
           aria-hidden="true"
-          style={{ transform: `translateX(${thumb.left}px)`, width: thumb.width }}
+          style={{
+            transform: `translate(${thumb.left}px, ${thumb.top}px)`,
+            width: thumb.width,
+            height: thumb.height,
+          }}
         />
       )}
       {options.map((o) => (
