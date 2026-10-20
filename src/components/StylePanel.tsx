@@ -276,8 +276,11 @@ export default function StylePanel({ config, onChange }: Props) {
             onChange={(v) => setCaption({ enabled: v })}
             label={t("style.captionShow")}
           />
-          {style.caption.enabled && (
-            <>
+          {/* Содержимое подписи всегда смонтировано: так его можно плавно
+              раскрыть по высоте, а значения полей не теряются */}
+          <div className={"reveal" + (style.caption.enabled ? " is-open" : "")}>
+            <div className="reveal__clip">
+              <div className="reveal__inner stack">
               <Field label={t("style.captionText")}>
                 <ClearableInput
                   className="input"
@@ -309,8 +312,9 @@ export default function StylePanel({ config, onChange }: Props) {
                 value={style.caption.color}
                 onChange={(v) => setCaption({ color: v })}
               />
-            </>
-          )}
+              </div>
+            </div>
+          </div>
         </div>
       </Section>
 

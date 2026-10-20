@@ -261,6 +261,39 @@ textarea {
   }
 }
 
+/* ---------- плавное раскрытие блока ---------- */
+
+.reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  /* в свёрнутом виде компенсируем зазор стека, чтобы не оставалось пустоты */
+  margin-top: -1.5rem;
+  visibility: hidden;
+  transition:
+    grid-template-rows 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+    margin-top 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 0.32s;
+}
+
+.reveal.is-open {
+  grid-template-rows: 1fr;
+  margin-top: 0;
+  visibility: visible;
+  transition:
+    grid-template-rows 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+    margin-top 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s;
+}
+
+.reveal__clip {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.reveal__inner {
+  padding-top: 0.02rem; /* чтобы обрезка не срезала первую строку */
+}
+
 /* ---------- секции ---------- */
 
 .section {
