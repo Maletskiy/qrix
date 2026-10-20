@@ -52,7 +52,12 @@ export default function Preview({ svg, payload, config, error }: Props) {
     const el = actionsRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => setBarVisible(!entry.isIntersecting),
+      ([entry]) => {
+        // плашка нужна только когда кнопки ушли ВВЕРХ (прокрутили дальше них).
+        // Если они просто ниже экрана — пользователь до них ещё не дошёл.
+        const scrolledPast = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+        setBarVisible(scrolledPast);
+      },
       { rootMargin: "0px 0px -4px 0px" }
     );
     observer.observe(el);
