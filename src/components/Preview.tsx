@@ -59,7 +59,7 @@ export default function Preview({ svg, payload, config, error }: Props) {
   const handlePng = async () => {
     try {
       setBusy("png");
-      const blob = await svgToPngBlob(svg, config.style.size, 3);
+      const blob = await svgToPngBlob(svg, config.style.size);
       downloadBlob(blob, `qr-${config.type}-${Date.now()}.png`);
       flash(t("toast.pngSaved"));
     } catch {
@@ -72,7 +72,7 @@ export default function Preview({ svg, payload, config, error }: Props) {
   const handleCopyPng = async () => {
     try {
       setBusy("copy");
-      const blob = await svgToPngBlob(svg, config.style.size, 3);
+      const blob = await svgToPngBlob(svg, config.style.size);
       const ok = await copyPng(blob);
       flash(ok ? t("toast.pngCopied") : t("toast.copyBlocked"));
     } catch {

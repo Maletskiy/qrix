@@ -50,7 +50,7 @@ Amounts are converted to the smallest unit exactly, via `BigInt` — `0.015 BTC`
 - Custom colour picker instead of the unstyled native browser dialog: saturation field, hue slider, 24 ready colours, and a HEX input. Closes on outside click and on `Escape`
 
 **Export**
-- PNG (rasterised at 3×), SVG, and copy-to-clipboard for both — plus copying the raw payload
+- PNG at exactly the resolution you pick, SVG, and copy-to-clipboard for both — plus copying the raw payload
 - In SVG the whole code is **a single vector**: modules, marker frames and cores are merged into one `<path>` with `fill-rule="nonzero"`, where inner contours run counter-clockwise to punch the holes. In Figma or Illustrator it is one object, not a hundred layers
 
 **Usability**

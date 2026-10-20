@@ -29,10 +29,11 @@ export function svgDataUrl(svg: string): string {
 }
 
 /**
- * Растеризация SVG через canvas. Масштаб по умолчанию 3 — чтобы код
- * оставался резким при печати и в мессенджерах.
+ * Растеризация SVG через canvas. Масштаб по умолчанию 1: размер файла
+ * совпадает с настройкой «Размер PNG» — никаких скрытых множителей.
+ * Внутри SVG всё векторное, поэтому резкость не теряется.
  */
-export async function svgToPngBlob(svg: string, width: number, scale = 3): Promise<Blob> {
+export async function svgToPngBlob(svg: string, width: number, scale = 1): Promise<Blob> {
   const img = new Image();
   const url = svgDataUrl(svg);
 
