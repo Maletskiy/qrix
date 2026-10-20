@@ -126,6 +126,52 @@ export function Section({
   );
 }
 
+/**
+ * Плавно меняет высоту под содержимое: при смене табов контент подменяется,
+ * и без этого блок прыгает. Высота анимируется, содержимое подрезается только
+ * на время анимации — иначе обрезались бы выпадающие палитры.
+ */
+export function AutoHeight({ children }: { children: ReactNode }) {
+  const innerRef = useRef<HTMLDivElement | null>(null);
+  const [height, setHeight] = useState<number | undefined>(undefined);
+  const [animating, setAnimating] = useState(false);
+
+  useEffect(() => {
+    const el = innerRef.current;
+    if (!el) return;
+
+    let timer: number | undefined;
+    const sync = () => {
+      const next = el.getBoundingClientRect().height;
+      setHeight((prev) => {
+        if (prev !== undefined && Math.abs(prev - next) > 0.5) {
+          setAnimating(true);
+          if (timer) window.clearTimeout(timer);
+          timer = window.setTimeout(() => setAnimating(false), 340);
+        }
+        return next;
+      });
+    };
+
+    const observer = new ResizeObserver(sync);
+    observer.observe(el);
+    sync();
+    return () => {
+      observer.disconnect();
+      if (timer) window.clearTimeout(timer);
+    };
+  }, []);
+
+  return (
+    <div
+      className={"auto-height" + (animating ? " is-animating" : "")}
+      style={height === undefined ? undefined : { height }}
+    >
+      <div ref={innerRef}>{children}</div>
+    </div>
+  );
+}
+
 /** Крестик «очистить» внутри поля: виден по фокусу, если есть содержимое. */
 function ClearButton({ onClear }: { onClear: () => void }) {
   return (

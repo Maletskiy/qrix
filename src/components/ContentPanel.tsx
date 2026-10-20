@@ -6,6 +6,7 @@ import { formatPhone } from "../lib/phone";
 import { useState } from "react";
 import CoinSheet from "./CoinSheet";
 import {
+  AutoHeight,
   ClearableInput,
   ClearableTextarea,
   Field,
@@ -54,8 +55,9 @@ export default function ContentPanel({ config, onChange }: Props) {
           wrap
         />
 
-        {config.type === "crypto" && (
-          <div className="stack">
+        <AutoHeight>
+          {config.type === "crypto" && (
+            <div className="stack">
             <div className="field">
               <span className="field__label">{t("crypto.coin")}</span>
 
@@ -322,7 +324,8 @@ export default function ContentPanel({ config, onChange }: Props) {
               </Field>
             </div>
           </div>
-        )}
+          )}
+        </AutoHeight>
       </div>
 
       {coinSheet && (

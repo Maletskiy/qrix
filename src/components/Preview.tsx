@@ -4,6 +4,7 @@ import type { QrConfig } from "../lib/config";
 import type { Payload } from "../lib/payload";
 import { copyPng, copyText, downloadBlob, downloadSvg, svgToPngBlob } from "../lib/export";
 import { isRisky } from "../lib/styles";
+import { AutoHeight } from "./ui";
 import { useI18n } from "../lib/i18n/useI18n";
 
 type Props = {
@@ -223,13 +224,15 @@ export default function Preview({ svg, payload, config, error }: Props) {
         </div>
       </div>
 
-      {warnings.length > 0 && (
-        <ul className="warnings">
-          {warnings.map((w) => (
-            <li key={w}>{w}</li>
-          ))}
-        </ul>
-      )}
+      <AutoHeight>
+        {warnings.length > 0 && (
+          <ul className="warnings">
+            {warnings.map((w) => (
+              <li key={w}>{w}</li>
+            ))}
+          </ul>
+        )}
+      </AutoHeight>
 
       {toast && <div className={"toast" + (toast.visible ? " is-visible" : "")}>{toast.text}</div>}
     </div>

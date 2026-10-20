@@ -8,6 +8,7 @@ import { plural, t } from "../lib/i18n";
 import ShapeIcon from "./ShapeIcon";
 import DirIcon from "./DirIcon";
 import {
+  AutoHeight,
   ClearableInput,
   ColorField,
   Field,
@@ -108,6 +109,7 @@ export default function StylePanel({ config, onChange }: Props) {
             />
           </div>
 
+          <AutoHeight>
           {style.fillMode === "gradient" ? (
             <>
               {/* слева — готовые пресеты, справа — направление градиента */}
@@ -201,6 +203,7 @@ export default function StylePanel({ config, onChange }: Props) {
               />
             </div>
           )}
+          </AutoHeight>
           <Toggle
             checked={style.bgTransparent}
             onChange={(v) => set({ bgTransparent: v })}
