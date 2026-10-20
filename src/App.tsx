@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ContentPanel from "./components/ContentPanel";
 import StylePanel from "./components/StylePanel";
 import Preview from "./components/Preview";
@@ -8,6 +8,7 @@ import { encodeMatrix } from "./lib/qr";
 import { ensureCaptionGlyphs, renderSvg } from "./lib/render";
 import { buildPayload } from "./lib/payload";
 import { LANGS, t } from "./lib/i18n";
+import { useSlidingThumb } from "./components/ui";
 import { useI18n } from "./lib/i18n/useI18n";
 
 export default function App() {
@@ -29,6 +30,10 @@ export default function App() {
       alive = false;
     };
   }, []);
+
+  // подложка переключателя языков — та же анимация, что у табов
+  const langRef = useRef<HTMLDivElement | null>(null);
+  const langThumb = useSlidingThumb(langRef, ".lang__item.is-active", [lang]);
 
   const onChange = useCallback((patch: Partial<QrConfig>) => {
     setConfig((prev) => ({ ...prev, ...patch }));
@@ -90,7 +95,14 @@ export default function App() {
           </div>
         </div>
         <div className="topbar__actions">
-          <div className="lang" role="group" aria-label="Language">
+          <div className="lang" role="group" aria-label="Language" ref={langRef}>
+            {langThumb && (
+              <span
+                className="lang__thumb"
+                aria-hidden="true"
+                style={{ transform: `translateX(${langThumb.left}px)`, width: langThumb.width }}
+              />
+            )}
             {LANGS.map((item) => (
               <button
                 key={item.value}

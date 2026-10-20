@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type {
   ChangeEvent,
+  RefObject,
   InputHTMLAttributes,
   PointerEvent as ReactPointerEvent,
   ReactNode,
@@ -330,6 +331,40 @@ export function Field({
   );
 }
 
+/**
+ * Позиция и ширина активного элемента внутри контейнера — для скользящей
+ * подложки. Пересчитывается при смене активного значения и ресайзе.
+ */
+export function useSlidingThumb(
+  ref: RefObject<HTMLElement | null>,
+  activeSelector: string,
+  deps: unknown[]
+): { left: number; width: number } | null {
+  const [thumb, setThumb] = useState<{ left: number; width: number } | null>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const measure = () => {
+      const active = el.querySelector<HTMLElement>(activeSelector);
+      if (!active) {
+        setThumb(null);
+        return;
+      }
+      setThumb({ left: active.offsetLeft, width: active.offsetWidth });
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+
+  return thumb;
+}
+
 export function Segmented<T extends string>({
   value,
   options,
@@ -348,26 +383,13 @@ export function Segmented<T extends string>({
 }) {
   // Подложка переезжает под активный таб: меряем его позицию и ширину.
   const trackRef = useRef<HTMLDivElement | null>(null);
-  const [thumb, setThumb] = useState<{ left: number; width: number } | null>(null);
-
-  useEffect(() => {
-    const el = trackRef.current;
-    if (!el) return;
-
-    const measure = () => {
-      const active = el.querySelector<HTMLElement>(".segmented__item.is-active");
-      if (!active) {
-        setThumb(null);
-        return;
-      }
-      setThumb({ left: active.offsetLeft, width: active.offsetWidth });
-    };
-
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [value, options.length, wrap, stack, columns]);
+  const thumb = useSlidingThumb(trackRef, ".segmented__item.is-active", [
+    value,
+    options.length,
+    wrap,
+    stack,
+    columns,
+  ]);
 
   return (
     <div

@@ -179,6 +179,7 @@ textarea {
 
 /* переключатель языка */
 .lang {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 2px;
@@ -189,7 +190,25 @@ textarea {
   border-radius: 0.625rem;
 }
 
+/* подложка активного языка: переезжает, как у табов */
+.lang__thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 0;
+  border-radius: 0.45rem;
+  background: var(--accent);
+  pointer-events: none;
+  z-index: 0;
+  will-change: width, transform;
+  transition:
+    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .lang__item {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   height: 100%;
@@ -207,11 +226,11 @@ textarea {
 
 .lang__item:hover {
   color: var(--ink);
-  background: rgba(255, 255, 255, 0.05);
 }
 
 .lang__item.is-active {
-  background: var(--accent);
+  /* фон рисует подложка */
+  background: transparent;
   color: var(--accent-ink);
 }
 
