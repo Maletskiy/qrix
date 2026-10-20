@@ -140,8 +140,11 @@ export function PasteButton({ onValue }: { onValue: (text: string) => void }) {
       return;
     }
 
-    // браузер не дал прочитать буфер — ставим курсор в поле, чтобы вставить вручную
-    fieldInput()?.focus();
+    // Браузер не дал прочитать буфер (iOS всегда спрашивает разрешение на это).
+    // Ставим курсор и выделяем содержимое: системная «Вставить» заменит его целиком.
+    const input = fieldInput();
+    input?.focus();
+    input?.select();
   };
 
   return (
