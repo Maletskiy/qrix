@@ -1176,6 +1176,9 @@ select.input {
 .toggle__switch {
   display: inline-flex;
   flex: none;
+  /* визуальная часть тумблера: переключает строка, чтобы не было
+     двойного срабатывания на тач-устройствах */
+  pointer-events: none;
 }
 
 .toggle__text {

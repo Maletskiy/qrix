@@ -663,23 +663,25 @@ export function Toggle({
   label: string;
   hint?: string;
 }) {
-  // Где началось нажатие. Строка слушает pointerup, а не click: на тач-
-  // устройствах браузер присылает click с задержкой, и если из-за
-  // переключения макет уже съехал, click прилетает по строке — получалось
-  // второе срабатывание, и тумблер «не выключался».
-  const fromSwitch = useRef(false);
+  // Переключение идёт ровно одним путём — по завершении нажатия на строку.
+  // Сам SquishSwitch сделан чисто визуальным (`pointer-events: none`): его
+  // вендорный обработчик переключает состояние на pointerup, и на тач-
+  // устройствах этот путь накладывался на обработчик строки (или терялся
+  // вместе с задержанным click) — из-за этого тумблер подписи «не выключался».
+  // Клавиатура продолжает работать: у кнопки внутри остаётся свой click.
+  const press = useRef<{ x: number; y: number } | null>(null);
 
   return (
     <div
       className="toggle"
       onPointerDown={(e) => {
-        fromSwitch.current = !!(e.target as HTMLElement).closest(".toggle__switch");
+        press.current = { x: e.clientX, y: e.clientY };
       }}
-      onPointerUp={() => {
-        if (fromSwitch.current) {
-          fromSwitch.current = false;
-          return;
-        }
+      onPointerUp={(e) => {
+        const start = press.current;
+        press.current = null;
+        // жест ушёл в скролл/свайп — не переключаем
+        if (start && Math.hypot(e.clientX - start.x, e.clientY - start.y) > 10) return;
         onChange(!checked);
       }}
     >
