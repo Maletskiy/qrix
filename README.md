@@ -139,6 +139,20 @@ npm run build
 
 The app uses `base: "./"`, so it also works from a subdirectory.
 
+### How this repo deploys
+
+Git is the source of truth — Vercel builds on its own:
+
+| What | Where it lands |
+|---|---|
+| push to `main` | production, `https://qr-ix.com` |
+| push to any other branch, or a pull request | preview deployment with its own URL |
+| pull request | a comment from the `vercel` bot with the preview link, plus `Vercel` and `Vercel Preview Comments` checks |
+
+Preview URLs are public (deployment protection is off), so a link can be shared with anyone. Every push and pull request also runs CI (`.github/workflows/ci.yml`): `npm ci`, `npm run build` and `npm run verify` — the QR readability suite.
+
+`npm run deploy` still exists as a manual fallback (it calls the Vercel CLI with the project-local npm cache), but a normal release is just a merge into `main`.
+
 ## Readability, not just looks
 
 A beautiful QR code is useless if a scanner cannot read it. The repo ships a test that builds codes in every style, rasterises them and **decodes** them (`@resvg/resvg-js` to render, `jsqr` to recognise):
