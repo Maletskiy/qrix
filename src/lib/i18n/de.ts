@@ -58,6 +58,7 @@ export const de: Dict = {
   "contact.namePlaceholder": "Max Mustermann",
 
   "field.paste": "Einfügen",
+  "field.pasted": "Eingefügt",
   "field.clear": "Leeren",
   "common.optional": "Optional",
 

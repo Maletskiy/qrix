@@ -526,6 +526,18 @@ textarea {
   color: var(--accent);
 }
 
+/* подтверждение вставки: галочка + «вставлено» */
+.field__paste.is-done {
+  color: var(--accent);
+}
+
+.field__paste svg {
+  width: 0.85em;
+  height: 0.85em;
+  margin-right: 0.2em;
+  vertical-align: -0.1em;
+}
+
 .field__label {
   font-size: 0.7rem;
   letter-spacing: 0.1em;

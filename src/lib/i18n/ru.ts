@@ -59,6 +59,7 @@ export const ru = {
   "contact.namePlaceholder": "Иван Петров",
 
   "field.paste": "Вставить",
+  "field.pasted": "Вставлено",
   "field.clear": "Очистить",
   "common.optional": "Необязательно",
 

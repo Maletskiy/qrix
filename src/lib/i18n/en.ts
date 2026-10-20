@@ -57,6 +57,7 @@ export const en: Dict = {
   "contact.namePlaceholder": "John Smith",
 
   "field.paste": "Paste",
+  "field.pasted": "Pasted",
   "field.clear": "Clear",
   "common.optional": "Optional",
 

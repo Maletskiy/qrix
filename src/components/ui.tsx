@@ -264,9 +264,34 @@ export function ClearableTextarea({
   );
 }
 
+/** Галочка для подтверждения вставки. */
+function CheckMark() {
+  return (
+    <svg width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d="M20 6L9 17l-5-5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 /** Кнопка «Вставить»: подставляет текст из буфера обмена в поле. */
 export function PasteButton({ onValue }: { onValue: (text: string) => void }) {
   const btnRef = useRef<HTMLButtonElement | null>(null);
+  // на секунду показываем подтверждение — чтобы нажатие было заметно
+  const [done, setDone] = useState(false);
+  const doneTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (doneTimer.current) window.clearTimeout(doneTimer.current);
+    };
+  }, []);
 
   const fieldInput = () =>
     btnRef.current?.closest(".field")?.querySelector("input, textarea") as
@@ -281,6 +306,10 @@ export function PasteButton({ onValue }: { onValue: (text: string) => void }) {
       onValue(text.trim());
       // фокус нужен, чтобы поле показало полный вид значения, а не сокращённый
       fieldInput()?.focus();
+
+      setDone(true);
+      if (doneTimer.current) window.clearTimeout(doneTimer.current);
+      doneTimer.current = window.setTimeout(() => setDone(false), 1200);
       return;
     }
 
@@ -292,8 +321,21 @@ export function PasteButton({ onValue }: { onValue: (text: string) => void }) {
   };
 
   return (
-    <button ref={btnRef} type="button" className="field__paste" onClick={paste}>
-      {t("field.paste")}
+    <button
+      ref={btnRef}
+      type="button"
+      className={"field__paste" + (done ? " is-done" : "")}
+      onClick={paste}
+      aria-live="polite"
+    >
+      {done ? (
+        <>
+          <CheckMark />
+          {t("field.pasted")}
+        </>
+      ) : (
+        t("field.paste")
+      )}
     </button>
   );
 }

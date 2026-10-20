@@ -58,6 +58,7 @@ export const fr: Dict = {
   "contact.namePlaceholder": "Jean Dupont",
 
   "field.paste": "Coller",
+  "field.pasted": "Collé",
   "field.clear": "Effacer",
   "common.optional": "Facultatif",
 

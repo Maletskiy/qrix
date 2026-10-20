@@ -58,6 +58,7 @@ export const es: Dict = {
   "contact.namePlaceholder": "Juan Pérez",
 
   "field.paste": "Pegar",
+  "field.pasted": "Pegado",
   "field.clear": "Borrar",
   "common.optional": "Opcional",
 
