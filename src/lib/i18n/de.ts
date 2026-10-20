@@ -21,7 +21,7 @@ export const de: Dict = {
 
   "crypto.coin": "Münze und Netzwerk",
   "crypto.address": "Empfängeradresse",
-  "crypto.valid": "Format ok",
+  "crypto.valid": "Adresse ok",
   "crypto.invalid": "passt nicht",
   "crypto.amount": "Betrag, {unit}",
   "crypto.label": "Empfängerbezeichnung",
@@ -58,6 +58,7 @@ export const de: Dict = {
   "contact.namePlaceholder": "Max Mustermann",
 
   "field.paste": "Einfügen",
+  "field.clear": "Leeren",
   "common.optional": "Optional",
 
   "style.title": "Stil",

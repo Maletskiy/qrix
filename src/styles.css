@@ -379,6 +379,46 @@ textarea {
   gap: 0.85rem;
 }
 
+/* ---------- обёртка поля с кнопкой очистки ---------- */
+
+.input-wrap {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.input-wrap .input {
+  padding-right: 2.5rem;
+}
+
+.input-wrap__clear {
+  position: absolute;
+  right: 0.45rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 1.45rem;
+  height: 1.45rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.input-wrap__clear:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--ink);
+}
+
+.input-wrap--area .input-wrap__clear {
+  top: 0.85rem;
+  transform: none;
+}
+
 /* ---------- поля ---------- */
 
 .field {
@@ -507,7 +547,7 @@ select.input {
 }
 
 .input-with-state:focus-within .input {
-  padding-right: 0.75rem;
+  padding-right: 2.5rem; /* место под крестик очистки */
 }
 
 .state {

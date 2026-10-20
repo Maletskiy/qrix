@@ -5,7 +5,15 @@ import { t } from "../lib/i18n";
 import { formatPhone } from "../lib/phone";
 import { useState } from "react";
 import CoinSheet from "./CoinSheet";
-import { Field, PasteButton, Section, Segmented, Toggle } from "./ui";
+import {
+  ClearableInput,
+  ClearableTextarea,
+  Field,
+  PasteButton,
+  Section,
+  Segmented,
+  Toggle,
+} from "./ui";
 
 /**
  * Длинный адрес в нефокусе показываем укороченным: «начало ••• конец».
@@ -105,7 +113,7 @@ export default function ContentPanel({ config, onChange }: Props) {
               action={<PasteButton onValue={(v) => setCrypto({ address: v })} />}
             >
               <div className="input-with-state">
-                <input
+                <ClearableInput
                   className="input input--mono"
                   value={
                     addressFocused ? config.crypto.address : shortenMiddle(config.crypto.address)
@@ -127,7 +135,7 @@ export default function ContentPanel({ config, onChange }: Props) {
 
             <div className="grid-2">
               <Field label={t("crypto.amount", { unit: coin.amountUnit })} hint={t("common.optional")}>
-                <input
+                <ClearableInput
                   className="input input--mono"
                   value={config.crypto.amount}
                   placeholder="0.00"
@@ -136,7 +144,7 @@ export default function ContentPanel({ config, onChange }: Props) {
                 />
               </Field>
               <Field label={t("crypto.label")} hint={t("common.optional")}>
-                <input
+                <ClearableInput
                   className="input"
                   value={config.crypto.label}
                   placeholder={t("crypto.labelPlaceholder")}
@@ -146,7 +154,7 @@ export default function ContentPanel({ config, onChange }: Props) {
             </div>
 
             <Field label={t("crypto.message")} hint={t("common.optional")}>
-              <input
+              <ClearableInput
                 className="input"
                 value={config.crypto.message}
                 placeholder={t("crypto.messagePlaceholder")}
@@ -175,7 +183,7 @@ export default function ContentPanel({ config, onChange }: Props) {
             hint={t("link.hint")}
             action={<PasteButton onValue={(v) => onChange({ link: v })} />}
           >
-            <input
+            <ClearableInput
               className="input input--mono"
               value={config.link}
               placeholder="https://example.com"
@@ -191,7 +199,7 @@ export default function ContentPanel({ config, onChange }: Props) {
             hint={t("text.hint")}
             action={<PasteButton onValue={(v) => onChange({ text: v })} />}
           >
-            <textarea
+            <ClearableTextarea
               className="input input--area"
               rows={5}
               value={config.text}
@@ -205,7 +213,7 @@ export default function ContentPanel({ config, onChange }: Props) {
           <div className="stack">
             <div className="grid-2">
               <Field label={t("wifi.ssid")} action={<PasteButton onValue={(v) => setWifi({ ssid: v })} />}>
-                <input
+                <ClearableInput
                   className="input"
                   value={config.wifi.ssid}
                   placeholder="MyWiFi"
@@ -213,7 +221,7 @@ export default function ContentPanel({ config, onChange }: Props) {
                 />
               </Field>
               <Field label={t("wifi.password")} action={<PasteButton onValue={(v) => setWifi({ password: v })} />}>
-                <input
+                <ClearableInput
                   className="input input--mono"
                   value={config.wifi.password}
                   placeholder="••••••••"
@@ -244,7 +252,7 @@ export default function ContentPanel({ config, onChange }: Props) {
         {config.type === "email" && (
           <div className="stack">
             <Field label={t("email.to")} action={<PasteButton onValue={(v) => setEmail({ to: v })} />}>
-              <input
+              <ClearableInput
                 className="input input--mono"
                 value={config.email.to}
                 placeholder="hello@example.com"
@@ -252,14 +260,14 @@ export default function ContentPanel({ config, onChange }: Props) {
               />
             </Field>
             <Field label={t("email.subject")}>
-              <input
+              <ClearableInput
                 className="input"
                 value={config.email.subject}
                 onChange={(e) => setEmail({ subject: e.target.value })}
               />
             </Field>
             <Field label={t("email.body")}>
-              <textarea
+              <ClearableTextarea
                 className="input input--area"
                 rows={4}
                 value={config.email.body}
@@ -273,7 +281,7 @@ export default function ContentPanel({ config, onChange }: Props) {
           <div className="stack">
             <div className="grid-2">
               <Field label={t("contact.name")}>
-                <input
+                <ClearableInput
                   className="input"
                   value={config.contact.name}
                   placeholder={t("contact.namePlaceholder")}
@@ -282,7 +290,7 @@ export default function ContentPanel({ config, onChange }: Props) {
                 />
               </Field>
               <Field label={t("contact.phone")} action={<PasteButton onValue={(v) => setContact({ phone: formatPhone(v) })} />}>
-                <input
+                <ClearableInput
                   className="input input--mono"
                   value={config.contact.phone}
                   placeholder="+7 999 888 77 66"
@@ -294,7 +302,7 @@ export default function ContentPanel({ config, onChange }: Props) {
             </div>
             <div className="grid-2">
               <Field label={t("contact.email")} action={<PasteButton onValue={(v) => setContact({ email: v })} />}>
-                <input
+                <ClearableInput
                   className="input input--mono"
                   value={config.contact.email}
                   placeholder="hello@example.com"
@@ -304,7 +312,7 @@ export default function ContentPanel({ config, onChange }: Props) {
                 />
               </Field>
               <Field label={t("contact.company")}>
-                <input
+                <ClearableInput
                   className="input"
                   value={config.contact.company}
                   placeholder="Qrix"

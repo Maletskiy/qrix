@@ -20,7 +20,7 @@ export const en: Dict = {
 
   "crypto.coin": "Coin and network",
   "crypto.address": "Recipient address",
-  "crypto.valid": "looks fine",
+  "crypto.valid": "address ok",
   "crypto.invalid": "doesn't match",
   "crypto.amount": "Amount, {unit}",
   "crypto.label": "Recipient label",
@@ -57,6 +57,7 @@ export const en: Dict = {
   "contact.namePlaceholder": "John Smith",
 
   "field.paste": "Paste",
+  "field.clear": "Clear",
   "common.optional": "Optional",
 
   "style.title": "Style",

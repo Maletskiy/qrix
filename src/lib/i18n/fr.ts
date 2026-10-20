@@ -21,7 +21,7 @@ export const fr: Dict = {
 
   "crypto.coin": "Pièce et réseau",
   "crypto.address": "Adresse du destinataire",
-  "crypto.valid": "format correct",
+  "crypto.valid": "adresse ok",
   "crypto.invalid": "format douteux",
   "crypto.amount": "Montant, {unit}",
   "crypto.label": "Libellé du destinataire",
@@ -58,6 +58,7 @@ export const fr: Dict = {
   "contact.namePlaceholder": "Jean Dupont",
 
   "field.paste": "Coller",
+  "field.clear": "Effacer",
   "common.optional": "Facultatif",
 
   "style.title": "Style",

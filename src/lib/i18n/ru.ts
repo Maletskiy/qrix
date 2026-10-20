@@ -22,7 +22,7 @@ export const ru = {
 
   "crypto.coin": "Монета и сеть",
   "crypto.address": "Адрес получателя",
-  "crypto.valid": "формат ок",
+  "crypto.valid": "адрес ок",
   "crypto.invalid": "не похоже",
   "crypto.amount": "Сумма, {unit}",
   "crypto.label": "Подпись получателя",
@@ -59,6 +59,7 @@ export const ru = {
   "contact.namePlaceholder": "Иван Петров",
 
   "field.paste": "Вставить",
+  "field.clear": "Очистить",
   "common.optional": "Необязательно",
 
   "style.title": "Стиль",

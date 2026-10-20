@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import type { PointerEvent as ReactPointerEvent, ReactNode } from "react";
+import type {
+  ChangeEvent,
+  InputHTMLAttributes,
+  PointerEvent as ReactPointerEvent,
+  ReactNode,
+  TextareaHTMLAttributes,
+} from "react";
 import type { Option } from "../lib/styles";
 import { t } from "../lib/i18n";
 import { readClipboard } from "../lib/export";
@@ -117,6 +123,97 @@ export function Section({
         </div>
       </div>
     </section>
+  );
+}
+
+/** Крестик «очистить» внутри поля: виден по фокусу, если есть содержимое. */
+function ClearButton({ onClear }: { onClear: () => void }) {
+  return (
+    <button
+      type="button"
+      className="input-wrap__clear"
+      aria-label={t("field.clear")}
+      title={t("field.clear")}
+      /* не даём полю потерять фокус до клика */
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={onClear}
+    >
+      <svg width="0.7em" height="0.7em" viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M6 6l12 12M18 6L6 18"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.6"
+          strokeLinecap="round"
+        />
+      </svg>
+    </button>
+  );
+}
+
+/** Текстовое поле с крестиком очистки. */
+export function ClearableInput({
+  value,
+  onChange,
+  onFocus,
+  onBlur,
+  ...rest
+}: InputHTMLAttributes<HTMLInputElement> & { value: string; onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void }) {
+  const [focused, setFocused] = useState(false);
+  const filled = value.length > 0;
+
+  return (
+    <span className="input-wrap">
+      <input
+        {...rest}
+        value={value}
+        onChange={onChange}
+        onFocus={(e) => {
+          setFocused(true);
+          onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          onBlur?.(e);
+        }}
+      />
+      {focused && filled && (
+        <ClearButton onClear={() => onChange({ target: { value: "" } } as never)} />
+      )}
+    </span>
+  );
+}
+
+/** То же для многострочного поля. */
+export function ClearableTextarea({
+  value,
+  onChange,
+  onFocus,
+  onBlur,
+  ...rest
+}: TextareaHTMLAttributes<HTMLTextAreaElement> & { value: string; onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void }) {
+  const [focused, setFocused] = useState(false);
+  const filled = value.length > 0;
+
+  return (
+    <span className="input-wrap input-wrap--area">
+      <textarea
+        {...rest}
+        value={value}
+        onChange={onChange}
+        onFocus={(e) => {
+          setFocused(true);
+          onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          onBlur?.(e);
+        }}
+      />
+      {focused && filled && (
+        <ClearButton onClear={() => onChange({ target: { value: "" } } as never)} />
+      )}
+    </span>
   );
 }
 

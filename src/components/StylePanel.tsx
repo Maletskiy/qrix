@@ -7,7 +7,16 @@ import { readFileAsDataUrl } from "../lib/export";
 import { plural, t } from "../lib/i18n";
 import ShapeIcon from "./ShapeIcon";
 import DirIcon from "./DirIcon";
-import { ColorField, Field, IconPicker, Section, Segmented, Slider, Toggle } from "./ui";
+import {
+  ClearableInput,
+  ColorField,
+  Field,
+  IconPicker,
+  Section,
+  Segmented,
+  Slider,
+  Toggle,
+} from "./ui";
 
 type Props = {
   config: QrConfig;
@@ -270,7 +279,7 @@ export default function StylePanel({ config, onChange }: Props) {
           {style.caption.enabled && (
             <>
               <Field label={t("style.captionText")}>
-                <input
+                <ClearableInput
                   className="input"
                   value={style.caption.text}
                   placeholder={t("style.captionPlaceholder")}

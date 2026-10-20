@@ -21,7 +21,7 @@ export const es: Dict = {
 
   "crypto.coin": "Moneda y red",
   "crypto.address": "Dirección del destinatario",
-  "crypto.valid": "formato correcto",
+  "crypto.valid": "dirección ok",
   "crypto.invalid": "no parece válido",
   "crypto.amount": "Importe, {unit}",
   "crypto.label": "Etiqueta del destinatario",
@@ -58,6 +58,7 @@ export const es: Dict = {
   "contact.namePlaceholder": "Juan Pérez",
 
   "field.paste": "Pegar",
+  "field.clear": "Borrar",
   "common.optional": "Opcional",
 
   "style.title": "Estilo",
