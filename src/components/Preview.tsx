@@ -24,6 +24,8 @@ export default function Preview({ svg, payload, config, error }: Props) {
   // анимировалось, а не прыгало
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const [stageHeight, setStageHeight] = useState<number | null>(null);
+  const actionsRef = useRef<HTMLDivElement | null>(null);
+  const [barVisible, setBarVisible] = useState(false);
 
   const warnings = useMemo(() => {
     const list: string[] = [];
@@ -44,6 +46,18 @@ export default function Preview({ svg, payload, config, error }: Props) {
     if (!payload.value.trim()) list.push(t("warn.empty"));
     return list;
   }, [config.style, payload.value, lang]);
+
+  // плашка нужна только когда кнопок под кодом не видно
+  useEffect(() => {
+    const el = actionsRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setBarVisible(!entry.isIntersecting),
+      { rootMargin: "0px 0px -4px 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const el = canvasRef.current;
@@ -105,6 +119,80 @@ export default function Preview({ svg, payload, config, error }: Props) {
     }
   };
 
+  /** Четыре действия: и в блоке превью, и в нижней плашке. */
+  const renderActions = () => (
+    <>
+        <div className="preview__action-row">
+          <span className="preview__action-label">{t("preview.groupDownload")}</span>
+          <button
+            type="button"
+            className="btn btn--primary"
+            title={t("preview.downloadPng")}
+            aria-label={t("preview.downloadPng")}
+            onClick={handlePng}
+            disabled={!payload.value || !!error || busy === "png"}
+          >
+            {busy === "png" ? (
+            t("preview.busy")
+            ) : (
+            <>
+              <span className="btn-label btn-label--short">PNG</span>
+              <span className="btn-label btn-label--full">{t("preview.downloadPng")}</span>
+            </>
+            )}
+          </button>
+          <button
+            type="button"
+            className="btn btn--white"
+            title={t("preview.downloadSvg")}
+            aria-label={t("preview.downloadSvg")}
+            onClick={() => {
+            downloadSvg(svg, `qr-${config.type}-${Date.now()}.svg`);
+            flash(t("toast.svgSaved"));
+            }}
+            disabled={!payload.value || !!error}
+          >
+            <span className="btn-label btn-label--short">SVG</span>
+            <span className="btn-label btn-label--full">{t("preview.downloadSvg")}</span>
+          </button>
+        </div>
+
+        <div className="preview__action-row">
+          <span className="preview__action-label">{t("preview.groupCopy")}</span>
+          <button
+            type="button"
+            className="btn btn--ghost"
+            title={t("preview.copyPng")}
+            aria-label={t("preview.copyPng")}
+            onClick={handleCopyPng}
+            disabled={!payload.value || !!error || busy === "copy"}
+          >
+            {busy === "copy" ? (
+            t("preview.busy")
+            ) : (
+            <>
+              <span className="btn-label btn-label--short">PNG</span>
+              <span className="btn-label btn-label--full">{t("preview.copyPng")}</span>
+            </>
+            )}
+          </button>
+          <button
+            type="button"
+            className="btn btn--ghost"
+            title={t("preview.copySvg")}
+            aria-label={t("preview.copySvg")}
+            onClick={async () =>
+            flash((await copyText(svg)) ? t("toast.svgCopied") : t("toast.copyError"))
+            }
+            disabled={!payload.value || !!error}
+          >
+            <span className="btn-label btn-label--short">SVG</span>
+            <span className="btn-label btn-label--full">{t("preview.copySvg")}</span>
+          </button>
+        </div>
+    </>
+  );
+
   return (
     <div className="preview">
       <div
@@ -146,7 +234,14 @@ export default function Preview({ svg, payload, config, error }: Props) {
         </button>
       </div>
 
-      <div className="preview__actions">
+      <div className="preview__actions" ref={actionsRef}>
+        <div className="preview__action-grid">
+          {renderActions()}
+        </div>
+      </div>
+
+      {/* Плашка появляется, когда кнопки в блоке уходят из вида */}
+      <div className={"preview__bar" + (barVisible ? " is-visible" : "")}>
         <button
           type="button"
           className={"preview__jump" + (payload.value.trim() && !error ? "" : " is-empty")}
@@ -169,74 +264,7 @@ export default function Preview({ svg, payload, config, error }: Props) {
           )}
         </button>
         <div className="preview__action-grid">
-          <div className="preview__action-row">
-            <span className="preview__action-label">{t("preview.groupDownload")}</span>
-            <button
-              type="button"
-              className="btn btn--primary"
-              title={t("preview.downloadPng")}
-              aria-label={t("preview.downloadPng")}
-              onClick={handlePng}
-              disabled={!payload.value || !!error || busy === "png"}
-            >
-              {busy === "png" ? (
-                t("preview.busy")
-              ) : (
-                <>
-                  <span className="btn-label btn-label--short">PNG</span>
-                  <span className="btn-label btn-label--full">{t("preview.downloadPng")}</span>
-                </>
-              )}
-            </button>
-            <button
-              type="button"
-              className="btn btn--white"
-              title={t("preview.downloadSvg")}
-              aria-label={t("preview.downloadSvg")}
-              onClick={() => {
-                downloadSvg(svg, `qr-${config.type}-${Date.now()}.svg`);
-                flash(t("toast.svgSaved"));
-              }}
-              disabled={!payload.value || !!error}
-            >
-              <span className="btn-label btn-label--short">SVG</span>
-              <span className="btn-label btn-label--full">{t("preview.downloadSvg")}</span>
-            </button>
-          </div>
-
-          <div className="preview__action-row">
-            <span className="preview__action-label">{t("preview.groupCopy")}</span>
-            <button
-              type="button"
-              className="btn btn--ghost"
-              title={t("preview.copyPng")}
-              aria-label={t("preview.copyPng")}
-              onClick={handleCopyPng}
-              disabled={!payload.value || !!error || busy === "copy"}
-            >
-              {busy === "copy" ? (
-                t("preview.busy")
-              ) : (
-                <>
-                  <span className="btn-label btn-label--short">PNG</span>
-                  <span className="btn-label btn-label--full">{t("preview.copyPng")}</span>
-                </>
-              )}
-            </button>
-            <button
-              type="button"
-              className="btn btn--ghost"
-              title={t("preview.copySvg")}
-              aria-label={t("preview.copySvg")}
-              onClick={async () =>
-                flash((await copyText(svg)) ? t("toast.svgCopied") : t("toast.copyError"))
-              }
-              disabled={!payload.value || !!error}
-            >
-              <span className="btn-label btn-label--short">SVG</span>
-              <span className="btn-label btn-label--full">{t("preview.copySvg")}</span>
-            </button>
-          </div>
+          {renderActions()}
         </div>
       </div>
 
