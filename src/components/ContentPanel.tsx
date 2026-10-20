@@ -3,7 +3,7 @@ import type { ContactState, CryptoState, EmailState, QrConfig, WifiState } from 
 import { CONTENT_TYPES } from "../lib/payload";
 import { t } from "../lib/i18n";
 import { formatPhone } from "../lib/phone";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CoinSheet from "./CoinSheet";
 import {
   AutoHeight,
@@ -34,6 +34,36 @@ type Props = {
 export default function ContentPanel({ config, onChange }: Props) {
   const [coinSheet, setCoinSheet] = useState(false);
   const [addressFocused, setAddressFocused] = useState(false);
+  // сокращаем адрес только если он не влезает в инпут по ширине
+  const [addressOverflows, setAddressOverflows] = useState(false);
+  const addressWrapRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const measure = () => {
+      const input = addressWrapRef.current?.querySelector("input");
+      if (!input) return;
+
+      const value = config.crypto.address;
+      if (!value) {
+        setAddressOverflows(false);
+        return;
+      }
+
+      const style = getComputedStyle(input);
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      ctx.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+      const available =
+        input.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+      setAddressOverflows(ctx.measureText(value).width > available);
+    };
+
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [config.crypto.address]);
   const coin = coinById(config.crypto.coinId);
   const addressState = checkAddress(coin, config.crypto.address);
   const schemeIsFixed = coin.uri === "none";
@@ -114,11 +144,13 @@ export default function ContentPanel({ config, onChange }: Props) {
               hint={t(coin.hintKey)}
               action={<PasteButton onValue={(v) => setCrypto({ address: v })} />}
             >
-              <div className="input-with-state">
+              <div className="input-with-state" ref={addressWrapRef}>
                 <ClearableInput
                   className="input input--mono"
                   value={
-                    addressFocused ? config.crypto.address : shortenMiddle(config.crypto.address)
+                    addressFocused || !addressOverflows
+                      ? config.crypto.address
+                      : shortenMiddle(config.crypto.address)
                   }
                   placeholder={coin.placeholder}
                   spellCheck={false}
