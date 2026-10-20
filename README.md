@@ -43,7 +43,7 @@ Amounts are converted to the smallest unit exactly, via `BigInt` — `0.015 BTC`
 - 6 module shapes (rounded, square, dots, heart, diamond, star), 4 marker frames, 6 marker cores — all with icons and tooltips
 - Solid fill or gradient in 5 directions (vertical, horizontal, two diagonals, radial)
 - 8 ready-made gradient presets, square swatches
-- Logo in the centre — modules **under the logo are cut out**, not covered, so a clean quiet gap stays around it. Change size, padding or radius and the cut-out area is recalculated, with the module pattern rebuilt around it
+- Logo in the centre — modules **under the logo are cut out**, not covered, so a clean quiet gap stays around it. Change size, padding or radius and the cut-out area is recalculated, with the module pattern rebuilt around it. An SVG logo is inlined as real vector paths, so it survives the exported file being opened in Figma or Illustrator
 - Optional caption under the code (text, font, colour) — placed outside the symbol's quiet zone, so per the standard it does not affect scanning
 
 **Colour**

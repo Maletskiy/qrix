@@ -48,6 +48,63 @@ const esc = (s: string) =>
 
 type Radii = [number, number, number, number];
 
+/**
+ * Достаём содержимое SVG-логотипа, чтобы вставить его вектором.
+ * Figma (и часть других редакторов) не отрисовывает <image> с data-URL,
+ * а обычные пути из вложенного SVG читает нормально.
+ */
+function inlineSvgLogo(dataUrl: string): { inner: string; w: number; h: number } | null {
+  if (!/^data:image\/svg\+xml/i.test(dataUrl)) return null;
+  const comma = dataUrl.indexOf(",");
+  if (comma < 0) return null;
+
+  const meta = dataUrl.slice(0, comma);
+  const payload = dataUrl.slice(comma + 1);
+  let text: string;
+  try {
+    text = /;base64/i.test(meta) ? atob(payload) : decodeURIComponent(payload);
+  } catch {
+    return null;
+  }
+
+  const open = text.match(/<svg\b[^>]*>/i);
+  const close = text.lastIndexOf("</svg>");
+  if (!open || close < 0) return null;
+
+  const tag = open[0];
+  let w = 0;
+  let h = 0;
+
+  const vb = tag.match(/viewBox\s*=\s*["']([^"']+)["']/i);
+  if (vb) {
+    const parts = vb[1].trim().split(/[\s,]+/).map(Number);
+    if (parts.length === 4 && parts[2] > 0 && parts[3] > 0) {
+      w = parts[2];
+      h = parts[3];
+    }
+  }
+  if (!w || !h) {
+    const wm = tag.match(/\swidth\s*=\s*["']([\d.]+)/i);
+    const hm = tag.match(/\sheight\s*=\s*["']([\d.]+)/i);
+    if (wm && hm) {
+      w = Number(wm[1]);
+      h = Number(hm[1]);
+    }
+  }
+  if (!w || !h) return null;
+
+  // логотип попадает в разметку страницы, поэтому скрипты и обработчики убираем
+  const inner = text
+    .slice(open.index! + tag.length, close)
+    .replace(/<script[\s\S]*?<\/script/gi, "")
+    .replace(/<foreignObject[\s\S]*?<\/foreignObject/gi, "")
+    .replace(/\son\w+\s*=\s*"[^"]*"/gi, "")
+    .replace(/\son\w+\s*=\s*'[^']*'/gi, "")
+    .trim();
+
+  return inner ? { inner, w, h } : null;
+}
+
 /** Прямоугольник по часовой стрелке — для заливки. */
 export function rectCW(x: number, y: number, w: number, h: number, radii: Radii): string {
   const [tl, tr, br, bl] = radii.map(r3) as Radii;
@@ -314,17 +371,35 @@ export function renderSvg(o: RenderOptions): string {
     const plateColor = o.bgTransparent ? "#ffffff" : o.bgColor;
     const imgX = cxAll - logoSize / 2;
     const imgY = cyAll - logoSize / 2;
-    logoMarkup =
-      `<path d="${rectCW(px, py, plateSize, plateSize, [plateR, plateR, plateR, plateR])}" fill="${plateColor}"/>` +
+    const clipPath =
       `<clipPath id="${clipId}"><path d="${rectCW(imgX, imgY, logoSize, logoSize, [
         imgR,
         imgR,
         imgR,
         imgR,
-      ])}"/></clipPath>` +
-      `<image href="${o.logo}" x="${r3(imgX)}" y="${r3(imgY)}" width="${r3(logoSize)}" height="${r3(
-        logoSize
-      )}" preserveAspectRatio="xMidYMid meet" clip-path="url(#${clipId})"/>`;
+      ])}"/></clipPath>`;
+
+    const vector = inlineSvgLogo(o.logo);
+    let logoBody: string;
+
+    if (vector) {
+      // SVG-логотип вставляем путями: так он виден в Figma и остаётся вектором
+      const scale = Math.min(logoSize / vector.w, logoSize / vector.h);
+      const dx = imgX + (logoSize - vector.w * scale) / 2;
+      const dy = imgY + (logoSize - vector.h * scale) / 2;
+      logoBody =
+        `<g transform="translate(${r3(dx)} ${r3(dy)}) scale(${r3(scale)})">${vector.inner}</g>`;
+    } else {
+      logoBody =
+        `<image href="${o.logo}" x="${r3(imgX)}" y="${r3(imgY)}" width="${r3(logoSize)}" height="${r3(
+          logoSize
+        )}" preserveAspectRatio="xMidYMid meet"/>`;
+    }
+
+    logoMarkup =
+      `<path d="${rectCW(px, py, plateSize, plateSize, [plateR, plateR, plateR, plateR])}" fill="${plateColor}"/>` +
+      clipPath +
+      `<g clip-path="url(#${clipId})">${logoBody}</g>`;
   }
 
   const captionMarkup = hasCaption
