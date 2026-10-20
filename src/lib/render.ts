@@ -9,6 +9,8 @@ export type CaptionOptions = {
   text: string;
   color: string;
   font: string;
+  /** Множитель размера подписи: 1 — базовый */
+  scale: number;
 };
 
 export type RenderOptions = {
@@ -89,19 +91,26 @@ function vectorCaption(
   }
 
   const startX = total / 2 - (advance * scale) / 2;
-  return `<g transform="translate(${r3(startX)} ${r3(baselineY)}) scale(${r3(
+  return `<g transform="translate(${r6(startX)} ${r6(baselineY)}) scale(${r6(
     scale
   )})" fill="${color}">${parts.join("")}</g>`;
 }
 
-/** Подпись: 28px под кодом с отступом 12px — размеры заданы в пикселях итогового файла. */
-export const CAPTION_FONT_PX = 28;
-export const CAPTION_GAP_PX = 6;
+/**
+ * Подпись задаётся долей ширины кода, а не пикселями итогового файла:
+ * иначе её размер зависел от настройки «Размер PNG» и от сложности кода.
+ * 0.039 — исторические 28px на коде шириной 53 модуля при файле 720px.
+ */
+export const CAPTION_SIZE_RATIO = 0.039;
+/** Зазор между кодом и подписью как доля её высоты. */
+export const CAPTION_GAP_RATIO = 0.21;
 
 /** Зазор между логотипом и первым модулем кода, в модулях. */
 export const LOGO_SAFE_GAP = 0.7;
 
 const r3 = (v: number) => Math.round(v * 1000) / 1000;
+/** Масштаб глифов: три знака после запятой дают заметную ошибку размера */
+const r6 = (v: number) => Math.round(v * 1e6) / 1e6;
 const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -284,10 +293,10 @@ export function renderSvg(o: RenderOptions): string {
   const isDark = (r: number, c: number) => r >= 0 && c >= 0 && r < n && c < n && o.matrix[r][c];
 
   const total = n + o.margin * 2;
-  const pxPerUnit = o.size / total;
   const hasCaption = o.caption.enabled && o.caption.text.trim().length > 0;
-  const gapUnits = CAPTION_GAP_PX / pxPerUnit;
-  const fontUnits = CAPTION_FONT_PX / pxPerUnit;
+  // размер кегля — доля ширины кода, поэтому от «Размер PNG» не зависит
+  const fontUnits = total * CAPTION_SIZE_RATIO * (o.caption.scale ?? 1);
+  const gapUnits = fontUnits * CAPTION_GAP_RATIO;
   // снизу оставляем такой же отступ, как поля вокруг самого кода
   const bottomPad = o.margin;
   const vbH = total + (hasCaption ? gapUnits + fontUnits * 1.05 + bottomPad : 0);

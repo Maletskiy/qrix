@@ -97,6 +97,7 @@ export const fr: Dict = {
   "style.captionText": "Texte",
   "style.captionPlaceholder": "Scannez pour payer",
   "style.captionFont": "Police",
+  "style.captionSize": "Taille de la légende",
   "style.captionColor": "Couleur du texte",
   "style.paramsTitle": "Paramètres",
   "style.pngSize": "Taille du PNG",

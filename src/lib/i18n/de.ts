@@ -97,6 +97,7 @@ export const de: Dict = {
   "style.captionText": "Text",
   "style.captionPlaceholder": "Zum Bezahlen scannen",
   "style.captionFont": "Schrift",
+  "style.captionSize": "Größe der Beschriftung",
   "style.captionColor": "Textfarbe",
   "style.paramsTitle": "Parameter",
   "style.pngSize": "PNG-Größe",

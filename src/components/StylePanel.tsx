@@ -295,6 +295,15 @@ export default function StylePanel({ config, onChange }: Props) {
                   onChange={(v) => setCaption({ font: v })}
                 />
               </div>
+
+              <Slider
+                label={t("style.captionSize")}
+                value={style.caption.scale}
+                min={0.6}
+                max={2}
+                step={0.05}
+                onChange={(v) => setCaption({ scale: v })}
+              />
               <ColorField
                 label={t("style.captionColor")}
                 value={style.caption.color}

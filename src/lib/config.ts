@@ -130,6 +130,7 @@ export const defaultConfig: QrConfig = {
       text: "",
       color: "#0e0e10",
       font: CAPTION_FONTS[0].value,
+      scale: 1,
     },
   },
 };

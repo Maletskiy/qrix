@@ -96,6 +96,7 @@ export const en: Dict = {
   "style.captionText": "Text",
   "style.captionPlaceholder": "Scan to pay",
   "style.captionFont": "Font",
+  "style.captionSize": "Caption size",
   "style.captionColor": "Text color",
   "style.paramsTitle": "Parameters",
   "style.pngSize": "PNG size",

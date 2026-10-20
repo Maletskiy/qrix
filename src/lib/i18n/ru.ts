@@ -98,6 +98,7 @@ export const ru = {
   "style.captionText": "Текст",
   "style.captionPlaceholder": "Отсканируйте, чтобы перевести",
   "style.captionFont": "Шрифт",
+  "style.captionSize": "Размер подписи",
   "style.captionColor": "Цвет текста",
   "style.paramsTitle": "Параметры",
   "style.pngSize": "Размер PNG",
