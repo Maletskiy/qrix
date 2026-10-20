@@ -603,6 +603,7 @@ select.input {
 /* ---------- segmented ---------- */
 
 .segmented {
+  position: relative;
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(0, 1fr);
@@ -613,6 +614,22 @@ select.input {
   background: var(--panel-2);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
+}
+
+/* подложка активного таба: переезжает и меняет ширину, а не появляется скачком */
+.segmented__thumb {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 0;
+  border-radius: 0.5rem;
+  background: var(--ink);
+  pointer-events: none;
+  z-index: 0;
+  will-change: width, transform;
+  transition:
+    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* многострочные варианты высоту берут по содержимому, но не ниже общей */
@@ -638,6 +655,8 @@ select.input {
 }
 
 .segmented__item {
+  position: relative;
+  z-index: 1;
   border: 0;
   background: transparent;
   color: var(--muted);
@@ -645,7 +664,7 @@ select.input {
   border-radius: 0.5rem;
   font-size: 0.79rem;
   cursor: pointer;
-  transition: background 0.14s ease, color 0.14s ease;
+  transition: color 0.35s ease;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -658,11 +677,11 @@ select.input {
 
 .segmented__item:hover {
   color: var(--ink);
-  background: rgba(255, 255, 255, 0.05);
 }
 
 .segmented__item.is-active {
-  background: var(--ink);
+  /* фон рисует подложка, поэтому здесь только цвет текста */
+  background: transparent;
   color: #0a0c05;
   font-weight: 500;
 }

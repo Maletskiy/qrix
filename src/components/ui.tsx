@@ -346,8 +346,32 @@ export function Segmented<T extends string>({
   /** на узких экранах переключатель становится вертикальным */
   stack?: boolean;
 }) {
+  // Подложка переезжает под активный таб: меряем его позицию и ширину.
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const [thumb, setThumb] = useState<{ left: number; width: number } | null>(null);
+
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+
+    const measure = () => {
+      const active = el.querySelector<HTMLElement>(".segmented__item.is-active");
+      if (!active) {
+        setThumb(null);
+        return;
+      }
+      setThumb({ left: active.offsetLeft, width: active.offsetWidth });
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [value, options.length, wrap, stack, columns]);
+
   return (
     <div
+      ref={trackRef}
       className={
         "segmented" + (wrap ? " segmented--wrap" : "") + (stack ? " segmented--stack" : "")
       }
@@ -357,6 +381,13 @@ export function Segmented<T extends string>({
           : undefined
       }
     >
+      {thumb && (
+        <span
+          className="segmented__thumb"
+          aria-hidden="true"
+          style={{ transform: `translateX(${thumb.left}px)`, width: thumb.width }}
+        />
+      )}
       {options.map((o) => (
         <button
           key={o.value}
