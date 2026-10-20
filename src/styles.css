@@ -564,9 +564,18 @@ select.input {
   grid-auto-columns: minmax(0, 1fr);
   gap: 3px;
   padding: 3px;
+  /* та же высота, что у переключателя направления в блоке градиента */
+  height: 2.625rem;
   background: var(--panel-2);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
+}
+
+/* многострочные варианты высоту берут по содержимому, но не ниже общей */
+.segmented--wrap,
+.segmented--stack {
+  height: auto;
+  min-height: 2.625rem;
 }
 
 /* вертикальные табы на узких экранах (например, уровни коррекции) */
@@ -1697,9 +1706,12 @@ select.input {
   position: relative;
   display: grid;
   place-items: center;
+  aspect-ratio: 1 / 1; /* запасное значение, пока высота не измерена */
   border-radius: var(--radius-sm);
   padding: 0;
   overflow: hidden;
+  /* включение подписи меняет высоту кода — анимируем, а не прыгаем */
+  transition: height 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* без кода высоту задавать нечем — держим квадрат */
@@ -1707,7 +1719,12 @@ select.input {
   aspect-ratio: 1 / 1;
 }
 
+/* холст не участвует в расчёте высоты сцены: высотой управляет состояние,
+   иначе анимация невозможна */
 .preview__canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
   display: block;
   width: 100%;
 }

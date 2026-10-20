@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { contrastRatio } from "../lib/render";
 import type { QrConfig } from "../lib/config";
 import type { Payload } from "../lib/payload";
@@ -19,6 +19,10 @@ export default function Preview({ svg, payload, config, error }: Props) {
   const [toast, setToast] = useState<{ text: string; visible: boolean } | null>(null);
   const toastTimer = useRef<number | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
+  // высота сцены: меряем холст и задаём её явно, чтобы включение подписи
+  // анимировалось, а не прыгало
+  const canvasRef = useRef<HTMLDivElement | null>(null);
+  const [stageHeight, setStageHeight] = useState<number | null>(null);
 
   const warnings = useMemo(() => {
     const list: string[] = [];
@@ -39,6 +43,24 @@ export default function Preview({ svg, payload, config, error }: Props) {
     if (!payload.value.trim()) list.push(t("warn.empty"));
     return list;
   }, [config.style, payload.value, lang]);
+
+  useEffect(() => {
+    const el = canvasRef.current;
+    if (!el) {
+      setStageHeight(null);
+      return;
+    }
+
+    const sync = () => {
+      const h = el.getBoundingClientRect().height;
+      setStageHeight(h > 0 ? h : null);
+    };
+
+    const observer = new ResizeObserver(sync);
+    observer.observe(el);
+    sync();
+    return () => observer.disconnect();
+  }, [svg]);
 
   // плавно: монтируем в скрытом состоянии, через два кадра включаем видимость —
   // иначе браузер рисует тост сразу в конечном виде и transition не запускается
@@ -87,6 +109,7 @@ export default function Preview({ svg, payload, config, error }: Props) {
       <div
         className={"preview__stage" + (payload.value.trim() && !error ? "" : " preview__stage--empty")}
         ref={stageRef}
+        style={stageHeight ? { height: stageHeight } : undefined}
       >
         {error ? (
           <div className="preview__error">
@@ -95,6 +118,7 @@ export default function Preview({ svg, payload, config, error }: Props) {
           </div>
         ) : payload.value.trim() ? (
           <div
+            ref={canvasRef}
             className="preview__canvas"
             style={config.style.bgTransparent ? { background: "var(--checker)" } : undefined}
             dangerouslySetInnerHTML={{ __html: svg }}
