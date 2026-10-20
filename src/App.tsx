@@ -5,7 +5,7 @@ import Preview from "./components/Preview";
 import { defaultConfig, configFromQuery } from "./lib/config";
 import type { QrConfig } from "./lib/config";
 import { encodeMatrix } from "./lib/qr";
-import { renderSvg } from "./lib/render";
+import { ensureCaptionGlyphs, renderSvg } from "./lib/render";
 import { buildPayload } from "./lib/payload";
 import { LANGS, t } from "./lib/i18n";
 import { useI18n } from "./lib/i18n/useI18n";
@@ -17,6 +17,18 @@ export default function App() {
     ...defaultConfig,
     ...configFromQuery(window.location.search),
   }));
+
+  // контуры глифов грузим в фоне: подпись должна быть вектором к моменту экспорта
+  const [glyphsReady, setGlyphsReady] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    ensureCaptionGlyphs().then(() => {
+      if (alive) setGlyphsReady(true);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const onChange = useCallback((patch: Partial<QrConfig>) => {
     setConfig((prev) => ({ ...prev, ...patch }));
@@ -57,7 +69,8 @@ export default function App() {
       shapeScale: config.style.shapeScale,
       dotRadius: config.style.dotRadius,
     });
-  }, [encoded, config.style, lang]);
+    // glyphsReady в зависимостях: когда контуры подписи догрузились, нужен пересчёт
+  }, [encoded, config.style, lang, glyphsReady]);
 
   const error = encoded && !encoded.ok ? encoded.error : null;
 

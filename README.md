@@ -44,7 +44,7 @@ Amounts are converted to the smallest unit exactly, via `BigInt` — `0.015 BTC`
 - Solid fill or gradient in 5 directions (vertical, horizontal, two diagonals, radial)
 - 8 ready-made gradient presets, square swatches
 - Logo in the centre — modules **under the logo are cut out**, not covered, so a clean quiet gap stays around it. Change size, padding or radius and the cut-out area is recalculated, with the module pattern rebuilt around it. An SVG logo is inlined as real vector paths, so it survives the exported file being opened in Figma or Illustrator
-- Optional caption under the code (text, font, colour) — placed outside the symbol's quiet zone, so per the standard it does not affect scanning
+- Optional caption under the code (text, font, colour) — placed outside the symbol's quiet zone, so per the standard it does not affect scanning. With the bundled font the caption is **converted to outlines**, so it stays a vector in Figma or Illustrator instead of turning into a substituted font
 
 **Colour**
 - Custom colour picker instead of the unstyled native browser dialog: saturation field, hue slider, 24 ready colours, and a HEX input. Closes on outside click and on `Escape`
@@ -197,7 +197,7 @@ src/
 
 - Diamond and star module shapes, and a diamond marker frame, do not decode — they are decorative, and the UI says so
 - Codes shorter than 30 characters read unreliably with round dots and hearts
-- The caption uses the Google Sans webfont in the app and in exported SVG; a **rasterised PNG** falls back to a system font, because an SVG loaded through `<img>` cannot use the page's `@font-face`
+- Captions in the bundled font are outlined and stay vector; the Serif and Mono options use system fonts, so they fall back to `<text>` and may be substituted by the reader
 - Safari may show its own paste prompt for the “Paste” buttons — that is system behaviour, not something a page can bypass
 
 ## Credits

@@ -35,6 +35,65 @@ export type RenderOptions = {
   dotRadius: number;
 };
 
+/**
+ * Контуры глифов для подписи. Таблица большая (сотни символов), поэтому
+ * грузится отдельным чанком по требованию, а не в основной сборке.
+ */
+type GlyphTable = {
+  metrics: { unitsPerEm: number; ascender: number; descender: number };
+  glyphs: Record<string, [number, string]>;
+};
+
+let glyphTable: GlyphTable | null = null;
+
+/** Подгружает контуры глифов. Вызывается при старте приложения. */
+export async function ensureCaptionGlyphs(): Promise<void> {
+  if (glyphTable) return;
+  try {
+    const mod = await import("./captionGlyphs");
+    glyphTable = { metrics: mod.CAPTION_FONT_METRICS, glyphs: mod.CAPTION_GLYPHS };
+  } catch {
+    glyphTable = null;
+  }
+}
+
+/** Готовы ли контуры (если нет — подпись уйдёт тегом <text>). */
+export function captionGlyphsReady(): boolean {
+  return glyphTable !== null;
+}
+
+/**
+ * Подпись вектором: собираем контуры глифов в пути.
+ * Возвращает null, если шрифт не наш или не хватает какого-то символа.
+ */
+function vectorCaption(
+  text: string,
+  total: number,
+  baselineY: number,
+  fontUnits: number,
+  color: string
+): string | null {
+  if (!glyphTable) return null;
+
+  const { unitsPerEm } = glyphTable.metrics;
+  const scale = fontUnits / unitsPerEm;
+
+  let advance = 0;
+  const parts: string[] = [];
+  for (const char of text) {
+    const glyph = glyphTable.glyphs[char];
+    if (!glyph) return null; // незнакомый символ — откатываемся на <text>
+    const [width, d] = glyph;
+    if (d) parts.push(`<path d="${d}" transform="translate(${advance} 0)"/>`);
+    advance += width;
+  }
+
+  const startX = total / 2 - (advance * scale) / 2;
+  return `<g transform="translate(${r3(startX)} ${r3(baselineY)}) scale(${r3(
+    scale
+  )})" fill="${color}">${parts.join("")}</g>`;
+}
+
 /** Подпись: 28px под кодом с отступом 12px — размеры заданы в пикселях итогового файла. */
 export const CAPTION_FONT_PX = 28;
 export const CAPTION_GAP_PX = 6;
@@ -402,11 +461,19 @@ export function renderSvg(o: RenderOptions): string {
       `<g clip-path="url(#${clipId})">${logoBody}</g>`;
   }
 
-  const captionMarkup = hasCaption
-    ? `<text x="${r3(total / 2)}" y="${r3(total + gapUnits + fontUnits * 0.78)}" text-anchor="middle" ` +
-      `font-family="${esc(o.caption.font)}" font-size="${r3(fontUnits)}" font-weight="500" ` +
-      `fill="${o.caption.color}">${esc(o.caption.text)}</text>`
-    : "";
+  const captionBaseline = total + gapUnits + fontUnits * 0.78;
+  const vector =
+    hasCaption && /google sans/i.test(o.caption.font)
+      ? vectorCaption(o.caption.text, total, captionBaseline, fontUnits, o.caption.color)
+      : null;
+
+  const captionMarkup = !hasCaption
+    ? ""
+    : vector
+      ? vector
+      : `<text x="${r3(total / 2)}" y="${r3(captionBaseline)}" text-anchor="middle" ` +
+        `font-family="${esc(o.caption.font)}" font-size="${r3(fontUnits)}" font-weight="500" ` +
+        `fill="${o.caption.color}">${esc(o.caption.text)}</text>`;
 
   const defs = o.fillMode === "gradient" ? gradientDefs(uid, o.gradientKind, o.color1, o.color2) : "";
 

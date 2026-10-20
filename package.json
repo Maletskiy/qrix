@@ -23,9 +23,11 @@
     "cryptocurrency-icons": "^0.18.1",
     "esbuild": "^0.28.2",
     "jsqr": "^1.4.0",
+    "opentype.js": "^2.0.0",
     "pngjs": "^7.0.0",
     "simple-icons": "^16.35.0",
     "typescript": "^5.6.3",
-    "vite": "^5.4.11"
+    "vite": "^5.4.11",
+    "wawoff2": "^2.0.1"
   }
 }
