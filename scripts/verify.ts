@@ -13,7 +13,7 @@ import { writeFileSync, mkdirSync } from "node:fs";
 import { encodeMatrix } from "../src/lib/qr";
 import { renderSvg } from "../src/lib/render";
 import type { DotStyle, EyeBallStyle, EyeFrameStyle, RenderOptions } from "../src/lib/render";
-import { buildCryptoPayload, coinById } from "../src/lib/coins";
+import { buildCryptoPayload, checkAddress, coinById } from "../src/lib/coins";
 import { defaultConfig } from "../src/lib/config";
 import { t } from "../src/lib/i18n";
 import { formatPhone } from "../src/lib/phone";
@@ -261,6 +261,33 @@ report(
     return paths.length === 1 && svg.includes('fill-rule="nonzero"') && svg.includes('<g id="qr">');
   })()
 );
+
+/* Адреса: форма и контрольные суммы. Проверяем на реальных адресах, чтобы
+   слишком узкая регулярка не отбраковывала валидный адрес (так и было с TON:
+   user-friendly форма — 48 символов, а паттерн требовал 46). */
+const ADDRESS_SAMPLES: [string, string, "valid" | "invalid"][] = [
+  ["ton", "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs", "valid"],
+  ["ton", "UQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_p0p", "valid"],
+  ["ton", "kQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_ntm", "valid"],
+  ["ton", "0:83dfd552e63729b472fcbcc8c45ebcc6691702558b68ec7527e1ba403a0f31a8", "valid"],
+  ["ton", "EQB03CITu2pUhB9trGlqL2o3sMbIxGvM0TVwi-Ug6cf1i8mY", "invalid"],
+  ["ton", "EQB03CITu2pUhB9trGlqL2o3sMbIxGvM0TVwi-Ug6cf1", "invalid"],
+  ["btc", "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq", "valid"],
+  ["btc", "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", "valid"],
+  ["eth", "0x52908400098527886E0F7030069857D2E4169EE7", "valid"],
+  ["trx", "TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7", "valid"],
+  ["sol", "4uQeVj5tqViQh7yWWGStvkEG1Zmhx6uasJtWCJziofM", "valid"],
+  ["doge", "DBXu2kgc3xtvCUWFcxFE3r9hEYgmuaaCyD", "valid"],
+  ["xrp", "rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH", "valid"],
+];
+for (const [coinId, address, expect] of ADDRESS_SAMPLES) {
+  const coin = coinById(coinId);
+  const got = coin ? checkAddress(coin, address) : "invalid";
+  report(
+    `адрес ${coinId}: ${address.slice(0, 12)}… → ${expect}`,
+    got === expect
+  );
+}
 
 console.log(results.join("\n"));
 if (info.length) console.log("\nИнформационно:\n" + info.join("\n"));

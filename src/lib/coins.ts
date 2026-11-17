@@ -25,6 +25,8 @@ export type Coin = {
   pattern: RegExp;
   hintKey: DictKey;
   noteKey?: DictKey;
+  /** Дополнительная проверка поверх формы: контрольная сумма и т. п. */
+  validate?: (value: string) => boolean;
 };
 
 export const COINS: Coin[] = [
@@ -112,7 +114,10 @@ export const COINS: Coin[] = [
     uri: "ton",
     amountUnit: "GRAM",
     decimals: 9,
-    pattern: /^([EUk]Q[A-Za-z0-9_-]{44}|0:[a-fA-F0-9]{64})$/,
+    // user-friendly адрес — 48 символов: 2 префикса (EQ/UQ — mainnet,
+    // kQ/0Q — testnet) и 46 символов base64 (36 байт). Raw-форма — wc:hash.
+    pattern: /^([EUk0]Q[A-Za-z0-9_+/-]{46}|-?\d{1,3}:[a-fA-F0-9]{64})$/,
+    validate: isTonAddressValid,
     hintKey: "hint.ton",
   },
   {
@@ -182,7 +187,7 @@ export const COINS: Coin[] = [
     uri: "bip21",
     amountUnit: "DOGE",
     decimals: 8,
-    pattern: /^D[5-9A-HJ-NP-Za-km-z]{33}$/,
+    pattern: /^D[1-9A-HJ-NP-Za-km-z]{33}$/,
     hintKey: "hint.doge",
   },
   {
@@ -344,5 +349,53 @@ export type AddressCheck = "empty" | "valid" | "invalid";
 export function checkAddress(coin: Coin, address: string): AddressCheck {
   const value = address.trim();
   if (!value) return "empty";
-  return coin.pattern.test(value) ? "valid" : "invalid";
+  if (!coin.pattern.test(value)) return "invalid";
+  return coin.validate && !coin.validate(value) ? "invalid" : "valid";
+}
+
+/** CRC16/XMODEM (полином 0x1021, init 0) — им закрыт user-friendly адрес TON. */
+function crc16Xmodem(bytes: Uint8Array, from: number, to: number): number {
+  let crc = 0;
+  for (let i = from; i < to; i++) {
+    crc ^= bytes[i] << 8;
+    for (let bit = 0; bit < 8; bit++) {
+      crc = crc & 0x8000 ? ((crc << 1) ^ 0x1021) & 0xffff : (crc << 1) & 0xffff;
+    }
+  }
+  return crc;
+}
+
+/**
+ * Проверка контрольной суммы TON-адреса.
+ *
+ * User-friendly форма — это 36 байт: тег (bounceable/testnet), номер
+ * воркчейна, 32-байтовый хеш и 2 байта CRC16/XMODEM старшим байтом вперёд.
+ * Без сверки CRC опечатка в одном символе превращается в другой внешне
+ * правильный адрес, поэтому форму проверяем вместе с суммой. Raw-форма
+ * (`0:hex64`) контрольной суммы не имеет — для неё достаточно формы.
+ */
+function isTonAddressValid(value: string): boolean {
+  if (value.includes(":")) return true;
+
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  let bytes: Uint8Array;
+  try {
+    bytes = Uint8Array.from(atob(normalized), (ch) => ch.charCodeAt(0));
+  } catch {
+    return false;
+  }
+  if (bytes.length !== 36) return false;
+  // Тег должен соответствовать префиксу: EQ/UQ — mainnet, kQ/0Q — testnet.
+  const tag = bytes[0];
+  const expected = value.startsWith("EQ")
+    ? 0x11
+    : value.startsWith("UQ")
+      ? 0x51
+      : value.startsWith("kQ")
+        ? 0x91
+        : 0xd1;
+  if (tag !== expected) return false;
+
+  const stored = (bytes[34] << 8) | bytes[35];
+  return crc16Xmodem(bytes, 0, 34) === stored;
 }
