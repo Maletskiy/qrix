@@ -5,7 +5,7 @@ import Preview from "./components/Preview";
 import { defaultConfig, configFromQuery } from "./lib/config";
 import type { QrConfig } from "./lib/config";
 import { encodeMatrix } from "./lib/qr";
-import { ensureCaptionGlyphs, renderSvg } from "./lib/render";
+import { buildScene, ensureCaptionGlyphs, renderSvg } from "./lib/render";
 import { buildPayload } from "./lib/payload";
 import { LANGS, t } from "./lib/i18n";
 import { useSlidingThumb } from "./components/ui";
@@ -47,9 +47,9 @@ export default function App() {
     [payload.value, config.style.ecc]
   );
 
-  const svg = useMemo(() => {
-    if (!encoded || !encoded.ok) return "";
-    return renderSvg({
+  const renderOptions = useMemo(() => {
+    if (!encoded || !encoded.ok) return null;
+    return {
       matrix: encoded.matrix,
       size: config.style.size,
       margin: config.style.margin,
@@ -73,9 +73,13 @@ export default function App() {
       },
       shapeScale: config.style.shapeScale,
       dotRadius: config.style.dotRadius,
-    });
+    };
     // glyphsReady в зависимостях: когда контуры подписи догрузились, нужен пересчёт
   }, [encoded, config.style, lang, glyphsReady]);
+
+  // SVG — для экспорта, сцена — для живого canvas-превью
+  const svg = useMemo(() => (renderOptions ? renderSvg(renderOptions) : ""), [renderOptions]);
+  const scene = useMemo(() => (renderOptions ? buildScene(renderOptions) : null), [renderOptions]);
 
   const error = encoded && !encoded.ok ? encoded.error : null;
 
@@ -138,7 +142,7 @@ export default function App() {
           <StylePanel config={config} onChange={onChange} />
         </div>
         <aside className="layout__preview">
-          <Preview svg={svg} payload={payload} config={config} error={error} />
+          <Preview svg={svg} scene={scene} payload={payload} config={config} error={error} />
         </aside>
       </main>
 

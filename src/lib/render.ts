@@ -64,35 +64,47 @@ export function captionGlyphsReady(): boolean {
   return glyphTable !== null;
 }
 
-/**
- * Подпись вектором: собираем контуры глифов в пути.
- * Возвращает null, если шрифт не наш или не хватает какого-то символа.
- */
-function vectorCaption(
+/** Раскладка подписи по глифам: одна и та же для SVG и для canvas. */
+export type CaptionLayout = {
+  startX: number;
+  baseline: number;
+  scale: number;
+  glyphs: { d: string; x: number }[];
+};
+
+export function captionLayout(
   text: string,
   total: number,
   baselineY: number,
-  fontUnits: number,
-  color: string
-): string | null {
+  fontUnits: number
+): CaptionLayout | null {
   if (!glyphTable) return null;
 
   const { unitsPerEm } = glyphTable.metrics;
   const scale = fontUnits / unitsPerEm;
 
   let advance = 0;
-  const parts: string[] = [];
+  const glyphs: { d: string; x: number }[] = [];
   for (const char of text) {
     const glyph = glyphTable.glyphs[char];
     if (!glyph) return null; // незнакомый символ — откатываемся на <text>
     const [width, d] = glyph;
-    if (d) parts.push(`<path d="${d}" transform="translate(${advance} 0)"/>`);
+    if (d) glyphs.push({ d, x: advance });
     advance += width;
   }
 
-  const startX = total / 2 - (advance * scale) / 2;
-  return `<g transform="translate(${r6(startX)} ${r6(baselineY)}) scale(${r6(
-    scale
+  return { startX: total / 2 - (advance * scale) / 2, baseline: baselineY, scale, glyphs };
+}
+
+/**
+ * Подпись вектором: собираем контуры глифов в пути.
+ * Возвращает null, если шрифт не наш или не хватает какого-то символа.
+ */
+function vectorCaption(layout: CaptionLayout | null, color: string): string | null {
+  if (!layout) return null;
+  const parts = layout.glyphs.map((g) => `<path d="${g.d}" transform="translate(${g.x} 0)"/>`);
+  return `<g transform="translate(${r6(layout.startX)} ${r6(layout.baseline)}) scale(${r6(
+    layout.scale
   )})" fill="${color}">${parts.join("")}</g>`;
 }
 
@@ -280,26 +292,63 @@ function gradientDefs(id: string, kind: GradientKind, c1: string, c2: string): s
   return `<linearGradient id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient>`;
 }
 
-export function renderSvg(o: RenderOptions): string {
-  const n = o.matrix.length;
-  if (!n) return "";
+/** Модуль кода: путь в единицах viewBox и центр ячейки для анимаций. */
+export type SceneModule = { x: number; y: number; d: string };
 
-  const uid = "q" + Math.random().toString(36).slice(2, 8);
-  const fill = o.fillMode === "gradient" ? `url(#${uid})` : o.color1;
+/** Маркер: путь (кольцо с отверстием + ядро) и центр. */
+export type SceneEye = { cx: number; cy: number; d: string };
+
+export type SceneLogo = {
+  plateD: string;
+  imgX: number;
+  imgY: number;
+  imgSize: number;
+  imgR: number;
+  dataUrl: string;
+  vector: { inner: string; w: number; h: number } | null;
+};
+
+export type SceneCaption = {
+  baseline: number;
+  fontUnits: number;
+  color: string;
+  text: string;
+  font: string;
+  layout: CaptionLayout | null;
+};
+
+export type Scene = {
+  n: number;
+  total: number;
+  vbH: number;
+  margin: number;
+  modules: SceneModule[];
+  eyes: SceneEye[];
+  logo: SceneLogo | null;
+  caption: SceneCaption | null;
+  fill: { mode: FillMode; kind: GradientKind; color1: string; color2: string };
+  bg: { color: string; transparent: boolean };
+};
+
+/**
+ * Сцена кода: одна геометрия на два вывода. SVG сериализует её в строку
+ * (экспорт), canvas рисует по модулям (интерактивное превью с эффектами).
+ */
+export function buildScene(o: RenderOptions): Scene {
+  const n = o.matrix.length;
+  const total = n + o.margin * 2;
 
   const inFinder = (r: number, c: number) =>
     (r < 7 && c < 7) || (r < 7 && c >= n - 7) || (r >= n - 7 && c < 7);
 
   const isDark = (r: number, c: number) => r >= 0 && c >= 0 && r < n && c < n && o.matrix[r][c];
 
-  const total = n + o.margin * 2;
   const hasCaption = o.caption.enabled && o.caption.text.trim().length > 0;
-  // размер кегля — доля ширины кода, поэтому от «Размер PNG» не зависит
   const fontUnits = total * CAPTION_SIZE_RATIO * (o.caption.scale ?? 1);
   const gapUnits = fontUnits * CAPTION_GAP_RATIO;
-  // снизу оставляем такой же отступ, как поля вокруг самого кода
   const bottomPad = o.margin;
   const vbH = total + (hasCaption ? gapUnits + fontUnits * 1.05 + bottomPad : 0);
+  const captionBaseline = total + gapUnits + fontUnits * 0.78;
 
   const ox = o.margin;
   const oy = o.margin;
@@ -320,40 +369,35 @@ export function renderSvg(o: RenderOptions): string {
     return Math.abs(ox + c + 0.5 - cxAll) < excHalf && Math.abs(oy + r + 0.5 - cyAll) < excHalf;
   };
 
-  // --- всё содержимое кода собираем в один путь ---
-  const d: string[] = [];
-
   const roundRect = (x: number, y: number, w: number, radii: Radii) => rectCW(x, y, w, w, radii);
   const shapeScale = o.shapeScale;
 
+  const modules: SceneModule[] = [];
   for (let r = 0; r < n; r++) {
     for (let c = 0; c < n; c++) {
       if (!o.matrix[r][c] || inFinder(r, c) || insideLogo(r, c)) continue;
       const x = ox + c;
       const y = oy + r;
+      let d = "";
 
       switch (o.dotStyle) {
         case "square":
-          d.push(roundRect(x, y, 1, [0, 0, 0, 0]));
+          d = roundRect(x, y, 1, [0, 0, 0, 0]);
           break;
         case "dots":
-          d.push(circle(x + 0.5, y + 0.5, o.dotRadius * shapeScale));
+          d = circle(x + 0.5, y + 0.5, o.dotRadius * shapeScale);
           break;
-        case "diamond": {
-          const k = shapeScale;
-          d.push(diamondCW(x + 0.5, y + 0.5, 0.5 * k));
+        case "diamond":
+          d = diamondCW(x + 0.5, y + 0.5, 0.5 * shapeScale);
           break;
-        }
         case "heart": {
-          const k = shapeScale;
-          const inset = (1 - k) / 2;
-          d.push(heartPath(x + inset, y + inset, k));
+          const inset = (1 - shapeScale) / 2;
+          d = heartPath(x + inset, y + inset, shapeScale);
           break;
         }
         case "star": {
-          const k = shapeScale;
-          const inset = (1 - k) / 2;
-          d.push(starPath(x + inset, y + inset, k));
+          const inset = (1 - shapeScale) / 2;
+          d = starPath(x + inset, y + inset, shapeScale);
           break;
         }
         default: {
@@ -363,16 +407,16 @@ export function renderSvg(o: RenderOptions): string {
           const down = isDark(r + 1, c) && !inFinder(r + 1, c);
           const left = isDark(r, c - 1) && !inFinder(r, c - 1);
           const right = isDark(r, c + 1) && !inFinder(r, c + 1);
-          d.push(
-            roundRect(x, y, 1, [
-              !up && !left ? radius : 0,
-              !up && !right ? radius : 0,
-              !down && !right ? radius : 0,
-              !down && !left ? radius : 0,
-            ])
-          );
+          d = roundRect(x, y, 1, [
+            !up && !left ? radius : 0,
+            !up && !right ? radius : 0,
+            !down && !right ? radius : 0,
+            !down && !left ? radius : 0,
+          ]);
         }
       }
+
+      modules.push({ x: x + 0.5, y: y + 0.5, d });
     }
   }
 
@@ -383,25 +427,22 @@ export function renderSvg(o: RenderOptions): string {
     [n - 7, 0],
   ];
 
+  const eyes: SceneEye[] = [];
   for (const [r, c] of eyePositions) {
     const x = ox + c;
     const y = oy + r;
     const cx = x + 3.5;
     const cy = y + 3.5;
+    let d = "";
 
     if (o.eyeFrame === "circle") {
-      d.push(circle(cx, cy, 3.5));
-      d.push(circleCCW(cx, cy, 2.5));
+      d += circle(cx, cy, 3.5) + circleCCW(cx, cy, 2.5);
     } else if (o.eyeFrame === "diamond") {
-      d.push(diamondCW(cx, cy, 3.5));
-      d.push(diamondCCW(cx, cy, 2.5));
+      d += diamondCW(cx, cy, 3.5) + diamondCCW(cx, cy, 2.5);
     } else {
-      const outer: Radii =
-        o.eyeFrame === "rounded" ? [2.2, 2.2, 2.2, 2.2] : [0, 0, 0, 0];
-      const inner: Radii =
-        o.eyeFrame === "rounded" ? [1.2, 1.2, 1.2, 1.2] : [0, 0, 0, 0];
-      d.push(rectCW(x, y, 7, 7, outer));
-      d.push(rectCCW(x + 1, y + 1, 5, 5, inner));
+      const outer: Radii = o.eyeFrame === "rounded" ? [2.2, 2.2, 2.2, 2.2] : [0, 0, 0, 0];
+      const inner: Radii = o.eyeFrame === "rounded" ? [1.2, 1.2, 1.2, 1.2] : [0, 0, 0, 0];
+      d += rectCW(x, y, 7, 7, outer) + rectCCW(x + 1, y + 1, 5, 5, inner);
     }
 
     // ядро маркера
@@ -409,94 +450,139 @@ export function renderSvg(o: RenderOptions): string {
     const by = y + 2;
     switch (o.eyeBall) {
       case "dot":
-        d.push(circle(cx, cy, 1.5));
+        d += circle(cx, cy, 1.5);
         break;
       case "diamond":
-        d.push(diamondCW(cx, cy, 1.65));
+        d += diamondCW(cx, cy, 1.65);
         break;
       case "heart":
-        d.push(heartPath(bx - 0.15, by - 0.15, 3.3));
+        d += heartPath(bx - 0.15, by - 0.15, 3.3);
         break;
       case "star":
-        d.push(starPath(bx - 0.15, by - 0.15, 3.3, 0.6));
+        d += starPath(bx - 0.15, by - 0.15, 3.3, 0.6);
         break;
       case "rounded":
-        d.push(rectCW(bx, by, 3, 3, [0.95, 0.95, 0.95, 0.95]));
+        d += rectCW(bx, by, 3, 3, [0.95, 0.95, 0.95, 0.95]);
         break;
       default:
-        d.push(rectCW(bx, by, 3, 3, [0, 0, 0, 0]));
+        d += rectCW(bx, by, 3, 3, [0, 0, 0, 0]);
     }
+
+    eyes.push({ cx, cy, d });
   }
 
   // --- логотип ---
-  let logoMarkup = "";
+  let logo: SceneLogo | null = null;
   if (o.logo) {
     const px = cxAll - plateSize / 2;
     const py = cyAll - plateSize / 2;
     const plateR = (plateSize / 2) * o.logoRadius;
     const imgR = (logoSize / 2) * o.logoRadius;
+    logo = {
+      plateD: rectCW(px, py, plateSize, plateSize, [plateR, plateR, plateR, plateR]),
+      imgX: cxAll - logoSize / 2,
+      imgY: cyAll - logoSize / 2,
+      imgSize: logoSize,
+      imgR,
+      dataUrl: o.logo,
+      vector: inlineSvgLogo(o.logo),
+    };
+  }
+
+  const caption: SceneCaption | null = hasCaption
+    ? {
+        baseline: captionBaseline,
+        fontUnits,
+        color: o.caption.color,
+        text: o.caption.text,
+        font: o.caption.font,
+        layout: /google sans/i.test(o.caption.font)
+          ? captionLayout(o.caption.text, total, captionBaseline, fontUnits)
+          : null,
+      }
+    : null;
+
+  return {
+    n,
+    total,
+    vbH,
+    margin: o.margin,
+    modules,
+    eyes,
+    logo,
+    caption,
+    fill: { mode: o.fillMode, kind: o.gradientKind, color1: o.color1, color2: o.color2 },
+    bg: { color: o.bgColor, transparent: o.bgTransparent },
+  };
+}
+
+/** Сериализация сцены в SVG: экспорт и копирование в Figma. */
+export function renderSvg(o: RenderOptions): string {
+  const scene = buildScene(o);
+  if (!scene.n) return "";
+
+  const uid = "q" + Math.random().toString(36).slice(2, 8);
+  const fill = scene.fill.mode === "gradient" ? `url(#${uid})` : scene.fill.color1;
+  const defs =
+    scene.fill.mode === "gradient"
+      ? gradientDefs(uid, scene.fill.kind, scene.fill.color1, scene.fill.color2)
+      : "";
+
+  const codeD = scene.modules.map((m) => m.d).join("") + scene.eyes.map((e) => e.d).join("");
+
+  let logoMarkup = "";
+  if (scene.logo) {
+    const lg = scene.logo;
     const clipId = `${uid}-clip`;
-    const plateColor = o.bgTransparent ? "#ffffff" : o.bgColor;
-    const imgX = cxAll - logoSize / 2;
-    const imgY = cyAll - logoSize / 2;
-    const clipPath =
-      `<clipPath id="${clipId}"><path d="${rectCW(imgX, imgY, logoSize, logoSize, [
-        imgR,
-        imgR,
-        imgR,
-        imgR,
-      ])}"/></clipPath>`;
+    const plateColor = scene.bg.transparent ? "#ffffff" : scene.bg.color;
+    const clipPath = `<clipPath id="${clipId}"><path d="${rectCW(
+      lg.imgX,
+      lg.imgY,
+      lg.imgSize,
+      lg.imgSize,
+      [lg.imgR, lg.imgR, lg.imgR, lg.imgR]
+    )}"/></clipPath>`;
 
-    const vector = inlineSvgLogo(o.logo);
     let logoBody: string;
-
-    if (vector) {
+    if (lg.vector) {
       // SVG-логотип вставляем путями: так он виден в Figma и остаётся вектором
-      const scale = Math.min(logoSize / vector.w, logoSize / vector.h);
-      const dx = imgX + (logoSize - vector.w * scale) / 2;
-      const dy = imgY + (logoSize - vector.h * scale) / 2;
-      logoBody =
-        `<g transform="translate(${r3(dx)} ${r3(dy)}) scale(${r3(scale)})">${vector.inner}</g>`;
+      const scale = Math.min(lg.imgSize / lg.vector.w, lg.imgSize / lg.vector.h);
+      const dx = lg.imgX + (lg.imgSize - lg.vector.w * scale) / 2;
+      const dy = lg.imgY + (lg.imgSize - lg.vector.h * scale) / 2;
+      logoBody = `<g transform="translate(${r3(dx)} ${r3(dy)}) scale(${r3(scale)})">${
+        lg.vector.inner
+      }</g>`;
     } else {
-      logoBody =
-        `<image href="${o.logo}" x="${r3(imgX)}" y="${r3(imgY)}" width="${r3(logoSize)}" height="${r3(
-          logoSize
-        )}" preserveAspectRatio="xMidYMid meet"/>`;
+      logoBody = `<image href="${lg.dataUrl}" x="${r3(lg.imgX)}" y="${r3(lg.imgY)}" width="${r3(
+        lg.imgSize
+      )}" height="${r3(lg.imgSize)}" preserveAspectRatio="xMidYMid meet"/>`;
     }
 
     logoMarkup =
-      `<path d="${rectCW(px, py, plateSize, plateSize, [plateR, plateR, plateR, plateR])}" fill="${plateColor}"/>` +
+      `<path d="${lg.plateD}" fill="${plateColor}"/>` +
       clipPath +
       `<g clip-path="url(#${clipId})">${logoBody}</g>`;
   }
 
-  const captionBaseline = total + gapUnits + fontUnits * 0.78;
-  const vector =
-    hasCaption && /google sans/i.test(o.caption.font)
-      ? vectorCaption(o.caption.text, total, captionBaseline, fontUnits, o.caption.color)
-      : null;
-
-  const captionMarkup = !hasCaption
+  const captionMarkup = !scene.caption
     ? ""
-    : vector
-      ? vector
-      : `<text x="${r3(total / 2)}" y="${r3(captionBaseline)}" text-anchor="middle" ` +
-        `font-family="${esc(o.caption.font)}" font-size="${r3(fontUnits)}" font-weight="500" ` +
-        `fill="${o.caption.color}">${esc(o.caption.text)}</text>`;
-
-  const defs = o.fillMode === "gradient" ? gradientDefs(uid, o.gradientKind, o.color1, o.color2) : "";
+    : scene.caption.layout
+      ? (vectorCaption(scene.caption.layout, scene.caption.color) ?? "")
+      : `<text x="${r3(scene.total / 2)}" y="${r3(scene.caption.baseline)}" text-anchor="middle" ` +
+        `font-family="${esc(scene.caption.font)}" font-size="${r3(scene.caption.fontUnits)}" font-weight="500" ` +
+        `fill="${scene.caption.color}">${esc(scene.caption.text)}</text>`;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${o.size}" height="${Math.round(
-    (o.size * vbH) / total
-  )}" viewBox="0 0 ${r3(total)} ${r3(vbH)}" shape-rendering="geometricPrecision">
+    (o.size * scene.vbH) / scene.total
+  )}" viewBox="0 0 ${r3(scene.total)} ${r3(scene.vbH)}" shape-rendering="geometricPrecision">
   ${defs ? `<defs>${defs}</defs>` : ""}
   <g id="qr">
     ${
-      o.bgTransparent
+      scene.bg.transparent
         ? ""
-        : `<rect x="0" y="0" width="${r3(total)}" height="${r3(vbH)}" fill="${o.bgColor}"/>`
+        : `<rect x="0" y="0" width="${r3(scene.total)}" height="${r3(scene.vbH)}" fill="${scene.bg.color}"/>`
     }
-    <path d="${d.join("")}" fill="${fill}" fill-rule="nonzero"/>
+    <g id="qr-code"><path d="${codeD}" fill="${fill}" fill-rule="nonzero"/></g>
     ${logoMarkup}
     ${captionMarkup}
   </g>

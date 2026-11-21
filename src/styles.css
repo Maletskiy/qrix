@@ -1812,7 +1812,8 @@ select.input {
   aspect-ratio: 1 / 1; /* запасное значение, пока высота не измерена */
   border-radius: var(--radius-sm);
   padding: 0;
-  overflow: hidden;
+  /* код наклоняется к курсору и выходит за границы кадра — не обрезаем */
+  overflow: visible;
   /* включение подписи меняет высоту кода — анимируем, а не прыгаем */
   transition: height 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -1838,6 +1839,21 @@ select.input {
   width: 100%;
   height: auto;
   border-radius: var(--radius-sm);
+}
+
+/* живое превью на canvas: эффект курсора требует попиксельной отрисовки */
+.qr-canvas {
+  position: relative;
+  display: block;
+  width: 100%;
+  perspective: 900px;
+}
+
+.qr-canvas__surface {
+  display: block;
+  width: 100%;
+  border-radius: var(--radius-sm);
+  transform-origin: 50% 50%;
 }
 
 .preview__empty,

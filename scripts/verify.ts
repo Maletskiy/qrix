@@ -238,6 +238,16 @@ for (const [name, payload] of formats) {
 report("прозрачный фон", check(PAYLOADS["средний"], { bgTransparent: true }));
 report("без полей (margin 0)", check(PAYLOADS["средний"], { ...SOLID, margin: 0 }));
 report("радиальный градиент", check(PAYLOADS["средний"], { gradientKind: "radial" }));
+// эффект линзы живёт только в превью: экспортируемый SVG обязан быть чистым
+report(
+  "экспорт без эффектов превью",
+  (() => {
+    const enc = encodeMatrix(PAYLOADS["средний"], "Q");
+    if (!enc.ok) return false;
+    const svg = renderSvg({ ...options(), matrix: enc.matrix });
+    return !/feDisplacementMap|feImage|lens-/.test(svg);
+  })()
+);
 report(
   "подпись под кодом (символ в охранной зоне)",
   (() => {

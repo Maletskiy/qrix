@@ -4,17 +4,20 @@ import type { QrConfig } from "../lib/config";
 import type { Payload } from "../lib/payload";
 import { copyPng, copyText, downloadBlob, downloadSvg, svgToPngBlob } from "../lib/export";
 import { isRisky } from "../lib/styles";
+import type { Scene } from "../lib/render";
+import QrCanvas from "./QrCanvas";
 import { AutoHeight } from "./ui";
 import { useI18n } from "../lib/i18n/useI18n";
 
 type Props = {
   svg: string;
+  scene: Scene | null;
   payload: Payload;
   config: QrConfig;
   error: string | null;
 };
 
-export default function Preview({ svg, payload, config, error }: Props) {
+export default function Preview({ svg, scene, payload, config, error }: Props) {
   const { lang, t } = useI18n();
   const [busy, setBusy] = useState<string | null>(null);
   const [toast, setToast] = useState<{ text: string; visible: boolean } | null>(null);
@@ -215,8 +218,9 @@ export default function Preview({ svg, payload, config, error }: Props) {
             ref={canvasRef}
             className="preview__canvas"
             style={config.style.bgTransparent ? { background: "var(--checker)" } : undefined}
-            dangerouslySetInnerHTML={{ __html: svg }}
-          />
+          >
+            {scene ? <QrCanvas scene={scene} label={payload.value} /> : null}
+          </div>
         ) : (
           <div className="preview__empty">
             <span className="preview__empty-mark">QR</span>
