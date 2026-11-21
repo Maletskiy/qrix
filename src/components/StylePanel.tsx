@@ -3,7 +3,6 @@ import { CAPTION_FONTS, PALETTES } from "../lib/config";
 import type { QrConfig, StyleState } from "../lib/config";
 import type { DotStyle, EyeBallStyle, EyeFrameStyle, GradientKind } from "../lib/render";
 import { DECORATIVE_DOTS, DOTS_SAFE_SCALE, DOT_STYLES, EYE_BALLS, EYE_FRAMES, SAFE_SHAPE_SCALE } from "../lib/styles";
-import { readFileAsDataUrl } from "../lib/export";
 import { plural, t } from "../lib/i18n";
 import ShapeIcon from "./ShapeIcon";
 import DirIcon from "./DirIcon";
@@ -26,20 +25,10 @@ type Props = {
 
 export default function StylePanel({ config, onChange }: Props) {
   const style = config.style;
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const set = (patch: Partial<StyleState>) => onChange({ style: { ...style, ...patch } });
   const setCaption = (patch: Partial<StyleState["caption"]>) =>
     set({ caption: { ...style.caption, ...patch } });
-
-  const pickLogo = async (file: File | undefined) => {
-    if (!file) return;
-    if (file.size > 1024 * 1024) {
-      alert(t("style.logoTooBig"));
-      return;
-    }
-    set({ logo: await readFileAsDataUrl(file) });
-  };
 
   // Пока идёт анимация раскрытия подписи, содержимое обрезается по высоте.
   // Как только она закончилась, обрезку снимаем — иначе выпадающая палитра
@@ -223,66 +212,6 @@ export default function StylePanel({ config, onChange }: Props) {
             onChange={(v) => set({ bgTransparent: v })}
             label={t("style.transparent")}
           />
-        </div>
-      </Section>
-
-      <Section title={t("style.logoTitle")} collapsible>
-        <div className="stack">
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/png,image/jpeg,image/svg+xml,image/webp"
-            hidden
-            onChange={(e) => pickLogo(e.target.files?.[0])}
-          />
-          <div className="logo-row">
-            <div className="logo-preview">
-              {style.logo ? (
-                <img src={style.logo} alt={t("style.logoAlt")} />
-              ) : (
-                <span className="logo-preview__empty">{t("style.logoNone")}</span>
-              )}
-            </div>
-            <div className="logo-actions">
-              <button type="button" className="btn btn--ghost" onClick={() => fileRef.current?.click()}>
-                {t("style.logoUpload")}
-              </button>
-              {style.logo && (
-                <button type="button" className="btn btn--ghost" onClick={() => set({ logo: null })}>
-                  {t("style.logoRemove")}
-                </button>
-              )}
-            </div>
-          </div>
-
-          {style.logo && (
-            <>
-              <Slider
-                label={t("style.logoSize")}
-                value={Math.round(style.logoRatio * 100)}
-                min={12}
-                max={32}
-                onChange={(v) => set({ logoRatio: v / 100 })}
-                suffix="%"
-              />
-              <Slider
-                label={t("style.logoGap")}
-                value={style.logoPadding}
-                min={0.4}
-                max={2.4}
-                step={0.1}
-                onChange={(v) => set({ logoPadding: v })}
-              />
-              <Slider
-                label={t("style.logoRadius")}
-                value={Math.round(style.logoRadius * 100)}
-                min={0}
-                max={100}
-                onChange={(v) => set({ logoRadius: v / 100 })}
-                suffix="%"
-              />
-            </>
-          )}
         </div>
       </Section>
 
