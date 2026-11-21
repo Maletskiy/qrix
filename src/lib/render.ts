@@ -300,6 +300,7 @@ export type SceneEye = { cx: number; cy: number; d: string };
 
 export type SceneLogo = {
   plateD: string;
+  plateSize: number;
   imgX: number;
   imgY: number;
   imgSize: number;
@@ -480,6 +481,7 @@ export function buildScene(o: RenderOptions): Scene {
     const imgR = (logoSize / 2) * o.logoRadius;
     logo = {
       plateD: rectCW(px, py, plateSize, plateSize, [plateR, plateR, plateR, plateR]),
+      plateSize,
       imgX: cxAll - logoSize / 2,
       imgY: cyAll - logoSize / 2,
       imgSize: logoSize,

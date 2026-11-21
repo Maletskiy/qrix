@@ -56,6 +56,23 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+/** Затемняет цвет — для боковых граней «толщины» логотипа. */
+function darken(hex: string, amount: number): string {
+  const clean = hex.replace("#", "");
+  const full =
+    clean.length === 3
+      ? clean
+          .split("")
+          .map((ch) => ch + ch)
+          .join("")
+      : clean;
+  const to = (slice: string) => {
+    const value = Math.round(parseInt(slice, 16) * (1 - amount));
+    return Math.max(0, Math.min(255, value)).toString(16).padStart(2, "0");
+  };
+  return `#${to(full.slice(0, 2))}${to(full.slice(2, 4))}${to(full.slice(4, 6))}`;
+}
+
 function mixHex(a: string, b: string, t: number): string {
   const parse = (hex: string) => {
     const c = hex.replace("#", "");
@@ -420,12 +437,34 @@ export default function QrCanvas({ scene, label }: { scene: Scene; label?: strin
         const cxPx = centerX * k;
         const cyPx = centerY * k;
 
+        // толщина: несколько слоёв плашки, сдвинутых по проекции глубины.
+        // Когда логотип стоит лицом — слои совпадают и толщины не видно,
+        // когда поворачивается — проявляется боковая грань.
+        const plateColor = scene.bg.transparent ? "#ffffff" : scene.bg.color;
+        const platePx = lg.plateSize * k;
+        const depthPx = platePx * 0.12;
+        const sideShift = Math.sin(angle) * Math.sign(Math.cos(angle) || 1) * depthPx;
+        const layers = 7;
+
+        if (Math.abs(sideShift) > 0.5) {
+          for (let i = layers; i >= 1; i--) {
+            const t = i / layers;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.translate(cxPx + sideShift * t, cyPx);
+            ctx.rotate(wobble);
+            ctx.scale(sx, sy);
+            ctx.translate(-cxPx, -cyPx);
+            ctx.fillStyle = darken(plateColor, 0.12 + 0.22 * t);
+            ctx.fill(logoPlate);
+          }
+        }
+
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.translate(cxPx, cyPx);
         ctx.rotate(wobble);
         ctx.scale(sx, sy);
         ctx.translate(-cxPx, -cyPx);
-        ctx.fillStyle = scene.bg.transparent ? "#ffffff" : scene.bg.color;
+        ctx.fillStyle = plateColor;
         ctx.fill(logoPlate);
 
         if (logoImage && logoReady) {
