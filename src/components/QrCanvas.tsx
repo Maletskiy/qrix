@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import type { Scene } from "../lib/render";
-import { BRAND_ACCENT, accentFromLogo } from "../lib/accent";
 
 /**
  * Живое превью кода: canvas-рендер сцены с эффектом курсора.
@@ -84,7 +83,15 @@ function mixHex(a: string, b: string, t: number): string {
   return `#${to(r1 + (r2 - r1) * t)}${to(g1 + (g2 - g1) * t)}${to(b1 + (b2 - b1) * t)}`;
 }
 
-export default function QrCanvas({ scene, label }: { scene: Scene; label?: string }) {
+export default function QrCanvas({
+  scene,
+  accent,
+  label,
+}: {
+  scene: Scene;
+  accent: string;
+  label?: string;
+}) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -146,14 +153,6 @@ export default function QrCanvas({ scene, label }: { scene: Scene; label?: strin
     }
 
     // ---------- состояние ----------
-    let accent = BRAND_ACCENT;
-    let alive = true;
-    accentFromLogo(scene.logo?.dataUrl ?? null).then((value) => {
-      if (!alive) return;
-      accent = value;
-      start();
-    });
-
     const logoImage = scene.logo ? new Image() : null;
     let logoReady = false;
     if (logoImage && scene.logo) {
@@ -440,7 +439,7 @@ export default function QrCanvas({ scene, label }: { scene: Scene; label?: strin
         // толщина: несколько слоёв плашки, сдвинутых по проекции глубины.
         // Когда логотип стоит лицом — слои совпадают и толщины не видно,
         // когда поворачивается — проявляется боковая грань.
-        const plateColor = scene.bg.transparent ? "#ffffff" : scene.bg.color;
+        const plateColor = lg.plateColor;
         const platePx = lg.plateSize * k;
         const depthPx = platePx * 0.12;
         const sideShift = Math.sin(angle) * Math.sign(Math.cos(angle) || 1) * depthPx;
@@ -715,7 +714,6 @@ export default function QrCanvas({ scene, label }: { scene: Scene; label?: strin
     start();
 
     return () => {
-      alive = false;
       observer.disconnect();
       canvas.removeEventListener("pointerenter", onEnter);
       canvas.removeEventListener("pointermove", onMove);

@@ -6,6 +6,7 @@ import { defaultConfig, configFromQuery } from "./lib/config";
 import type { QrConfig } from "./lib/config";
 import { encodeMatrix } from "./lib/qr";
 import { buildScene, ensureCaptionGlyphs, renderSvg } from "./lib/render";
+import { BRAND_ACCENT, accentFromLogo } from "./lib/accent";
 import { buildPayload } from "./lib/payload";
 import { LANGS, t } from "./lib/i18n";
 import { useSlidingThumb } from "./components/ui";
@@ -30,6 +31,18 @@ export default function App() {
       alive = false;
     };
   }, []);
+
+  // акцент — цвет логотипа: нужен и превью, и экспорту (плашка под лого)
+  const [accent, setAccent] = useState(BRAND_ACCENT);
+  useEffect(() => {
+    let alive = true;
+    accentFromLogo(config.style.logo).then((value) => {
+      if (alive) setAccent(value);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [config.style.logo]);
 
   // подложка переключателя языков — та же анимация, что у табов
   const langRef = useRef<HTMLDivElement | null>(null);
@@ -63,6 +76,7 @@ export default function App() {
       bgColor: config.style.bgColor,
       bgTransparent: config.style.bgTransparent,
       logo: config.style.logo,
+      logoPlateColor: accent,
       logoRatio: config.style.logoRatio,
       logoPadding: config.style.logoPadding,
       logoRadius: config.style.logoRadius,
@@ -75,7 +89,7 @@ export default function App() {
       dotRadius: config.style.dotRadius,
     };
     // glyphsReady в зависимостях: когда контуры подписи догрузились, нужен пересчёт
-  }, [encoded, config.style, lang, glyphsReady]);
+  }, [encoded, config.style, lang, glyphsReady, accent]);
 
   // SVG — для экспорта, сцена — для живого canvas-превью
   const svg = useMemo(() => (renderOptions ? renderSvg(renderOptions) : ""), [renderOptions]);
@@ -142,7 +156,7 @@ export default function App() {
           <StylePanel config={config} onChange={onChange} />
         </div>
         <aside className="layout__preview">
-          <Preview svg={svg} scene={scene} payload={payload} config={config} error={error} />
+          <Preview svg={svg} scene={scene} accent={accent} payload={payload} config={config} error={error} />
         </aside>
       </main>
 

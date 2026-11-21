@@ -27,6 +27,8 @@ export type RenderOptions = {
   bgColor: string;
   bgTransparent: boolean;
   logo: string | null;
+  /** Цвет плашки под логотипом: по умолчанию цвет фона кода. */
+  logoPlateColor?: string;
   logoRatio: number;
   logoPadding: number;
   logoRadius: number;
@@ -301,6 +303,7 @@ export type SceneEye = { cx: number; cy: number; d: string };
 export type SceneLogo = {
   plateD: string;
   plateSize: number;
+  plateColor: string;
   imgX: number;
   imgY: number;
   imgSize: number;
@@ -360,8 +363,10 @@ export function buildScene(o: RenderOptions): Scene {
   let excHalf = -1;
   if (o.logo) {
     logoSize = Math.max(2, n * o.logoRatio);
-    plateSize = logoSize + o.logoPadding * 2;
-    excHalf = plateSize / 2 + LOGO_SAFE_GAP;
+    // плашка ровно по размеру логотипа; настройка зазора задаёт только
+    // вырез в коде вокруг неё
+    plateSize = logoSize;
+    excHalf = plateSize / 2 + o.logoPadding + LOGO_SAFE_GAP;
   }
   const cxAll = ox + n / 2;
   const cyAll = oy + n / 2;
@@ -482,6 +487,7 @@ export function buildScene(o: RenderOptions): Scene {
     logo = {
       plateD: rectCW(px, py, plateSize, plateSize, [plateR, plateR, plateR, plateR]),
       plateSize,
+      plateColor: o.logoPlateColor ?? (o.bgTransparent ? "#ffffff" : o.bgColor),
       imgX: cxAll - logoSize / 2,
       imgY: cyAll - logoSize / 2,
       imgSize: logoSize,
@@ -536,7 +542,7 @@ export function renderSvg(o: RenderOptions): string {
   if (scene.logo) {
     const lg = scene.logo;
     const clipId = `${uid}-clip`;
-    const plateColor = scene.bg.transparent ? "#ffffff" : scene.bg.color;
+    const plateColor = lg.plateColor;
     const clipPath = `<clipPath id="${clipId}"><path d="${rectCW(
       lg.imgX,
       lg.imgY,
