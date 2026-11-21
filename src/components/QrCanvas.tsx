@@ -370,27 +370,6 @@ export default function QrCanvas({ scene, label }: { scene: Scene; label?: strin
         }
       }
 
-      // блик гребня: аддитивный свет, виден на тёмных точках, а не на фоне
-      if (wave.active && wave.fade > 0.01) {
-        const cxPx = centerX * k;
-        const cyPx = centerY * k;
-        const r = wave.radius * k;
-        const band = Math.max(2, wave.band * k);
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        const sheen = ctx.createRadialGradient(cxPx, cyPx, Math.max(0, r - band), cxPx, cyPx, r + band);
-        sheen.addColorStop(0, "rgba(255,255,255,0)");
-        sheen.addColorStop(0.42, accentRgba(0.05 * wave.fade));
-        sheen.addColorStop(0.5, `rgba(255,255,255,${0.42 * wave.fade})`);
-        sheen.addColorStop(0.58, accentRgba(0.05 * wave.fade));
-        sheen.addColorStop(1, "rgba(255,255,255,0)");
-        ctx.globalCompositeOperation = "lighter";
-        ctx.fillStyle = sheen;
-        ctx.beginPath();
-        ctx.arc(cxPx, cyPx, r + band, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalCompositeOperation = "source-over";
-      }
-
       // маркеры: сжимаются под курсором, перекрашиваются и ловят волну
       for (let i = 0; i < eyes.length; i++) {
         const eye = eyes[i];
