@@ -8,7 +8,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { BUNDLES, LANGS, PAGE_COUNT, SITE } from "../src/landing";
-import { renderPage } from "../src/landing/render";
+import { renderHub, renderPage } from "../src/landing/render";
 import { encodeMatrix } from "../src/lib/qr";
 import { renderSvg } from "../src/lib/render";
 import type { RenderOptions } from "../src/lib/render";
@@ -68,27 +68,29 @@ function sitemap(): string {
   const today = new Date().toISOString().slice(0, 10);
   const urls: string[] = [];
 
+  const block = (loc: string, alternates: Record<string, string> | null): string => {
+    const links = alternates
+      ? Object.entries(alternates)
+          .map(([code, href]) => `    <xhtml:link rel="alternate" hreflang="${code}" href="${href}"/>`)
+          .join("\n") + `\n    <xhtml:link rel="alternate" hreflang="x-default" href="${alternates.en}"/>\n`
+      : "";
+    const priority = loc === `${SITE}/` ? "1.0" : "0.8";
+    return `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${today}</lastmod>\n    <priority>${priority}</priority>\n${links}  </url>`;
+  };
+
   // главная — сам генератор
-  urls.push(
-    `  <url>\n    <loc>${SITE}/</loc>\n    <lastmod>${today}</lastmod>\n    <priority>1.0</priority>\n  </url>`
-  );
+  urls.push(block(`${SITE}/`, null));
 
+  // списки гайдов на каждом языке
+  const hubs: Record<string, string> = {};
+  for (const lang of LANGS) hubs[lang] = `${SITE}/${lang}/`;
+  for (const lang of LANGS) urls.push(block(hubs[lang], hubs));
+
+  // сами гайды
   for (let index = 0; index < PAGE_COUNT; index++) {
-    for (const lang of LANGS) {
-      const slug = BUNDLES[lang].pages[index].slug;
-      const alternates = LANGS.map((code) => {
-        const alt = `${SITE}/${code}/${BUNDLES[code].pages[index].slug}/`;
-        return `    <xhtml:link rel="alternate" hreflang="${code}" href="${alt}"/>`;
-      });
-      alternates.push(
-        `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE}/en/${BUNDLES.en.pages[index].slug}/"/>`
-      );
-
-      urls.push(
-        `  <url>\n    <loc>${SITE}/${lang}/${slug}/</loc>\n    <lastmod>${today}</lastmod>\n` +
-          `    <priority>0.8</priority>\n${alternates.join("\n")}\n  </url>`
-      );
-    }
+    const pages: Record<string, string> = {};
+    for (const lang of LANGS) pages[lang] = `${SITE}/${lang}/${BUNDLES[lang].pages[index].slug}/`;
+    for (const lang of LANGS) urls.push(block(pages[lang], pages));
   }
 
   return (
@@ -100,6 +102,12 @@ function sitemap(): string {
 
 function main(): void {
   let written = 0;
+
+  // списки гайдов: /<lang>/
+  for (const lang of LANGS) {
+    write(join(lang, "index.html"), renderHub({ lang, bundles: BUNDLES, site: SITE }));
+    written++;
+  }
 
   for (let index = 0; index < PAGE_COUNT; index++) {
     for (const lang of LANGS) {
@@ -122,7 +130,7 @@ function main(): void {
     `User-agent: *\nAllow: /\n\nSitemap: ${SITE}/sitemap.xml\n`
   );
 
-  console.log(`страниц собрано: ${written} (${PAGE_COUNT} × ${LANGS.length} языков)`);
+  console.log(`страниц собрано: ${written} (${PAGE_COUNT} × ${LANGS.length} + ${LANGS.length} списков)`);
   console.log(`sitemap.xml и robots.txt обновлены`);
 }
 

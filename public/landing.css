@@ -438,6 +438,18 @@ code {
 
 /* --- другие гайды --- */
 
+.hub {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 40px 0 8px;
+}
+
+.hub + .guides__list {
+  margin-top: 32px;
+}
+
 .guides {
   padding: 56px 0 0;
 }

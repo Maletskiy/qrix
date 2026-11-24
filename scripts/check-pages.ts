@@ -15,6 +15,7 @@ import { Resvg } from "@resvg/resvg-js";
 import jsQR from "jsqr";
 import { PNG } from "pngjs";
 import { BUNDLES, LANGS, PAGE_COUNT, SITE } from "../src/landing";
+import type { Lang } from "../src/landing/types";
 
 const OUT = "dist";
 
@@ -60,6 +61,12 @@ function decodeSvg(svg: string): string | null {
 function attr(html: string, pattern: RegExp): string | null {
   const match = html.match(pattern);
   return match ? match[1] : null;
+}
+
+
+/** Ссылки на другие гайды и на список — для проверки перелинковки. */
+function guideLinks(html: string): string[] {
+  return [...html.matchAll(/<li><a href="([^"]+)"/g)].map((m) => m[1]);
 }
 
 function main(): void {
@@ -141,13 +148,49 @@ function main(): void {
       );
 
       // --- внутренние ссылки не должны вести в пустоту ---
-      const guides = [...html.matchAll(/<li><a href="([^"]+)"/g)].map((m) => m[1]);
-      for (const href of guides) {
+      for (const href of guideLinks(html)) {
         const [, code, slug] = href.replace(SITE, "").split("/");
-        const exists = LANGS.includes(code as (typeof LANGS)[number]) &&
-          BUNDLES[code as (typeof LANGS)[number]].pages.some((p) => p.slug === slug);
+        const known = LANGS.includes(code as (typeof LANGS)[number]);
+        // /<lang>/ — список гайдов, /<lang>/<slug>/ — сама страница
+        const exists = known && (slug === "" || BUNDLES[code as Lang].pages.some((p) => p.slug === slug));
         ok(exists, where, `ссылка на несуществующую страницу ${href}`);
       }
+    }
+  }
+
+  // --- списки гайдов: /<lang>/ ---
+  for (const lang of LANGS) {
+    const where = `/${lang}/`;
+    const file = join(OUT, lang, "index.html");
+    let html: string;
+    try {
+      html = readFileSync(file, "utf8");
+    } catch {
+      fail(where, "список гайдов не собран");
+      continue;
+    }
+
+    ok(
+      new RegExp(`<html lang="${BUNDLES[lang].chrome.htmlLang}"`).test(html),
+      where,
+      "неверный атрибут lang у <html>"
+    );
+    const canonical = attr(html, /<link rel="canonical" href="([^"]+)"/);
+    ok(canonical === `${SITE}${where}`, where, `canonical: ${canonical ?? "нет"}`);
+    ok((html.match(/<h1>/g) ?? []).length === 1, where, "должен быть ровно один h1");
+
+    const hreflangs = [...html.matchAll(/hreflang="([a-z-]+)" href="/g)].map((m) => m[1]);
+    for (const code of [...LANGS, "x-default"]) {
+      ok(hreflangs.includes(code), where, `нет hreflang ${code}`);
+    }
+
+    const links = guideLinks(html);
+    ok(links.length === PAGE_COUNT, where, `карточек гайдов ${links.length}, ожидалось ${PAGE_COUNT}`);
+    for (const href of links) {
+      const exists = LANGS.some((code) =>
+        BUNDLES[code].pages.some((page) => href === `${SITE}/${code}/${page.slug}/`)
+      );
+      ok(exists, where, `ссылка на несуществующую страницу ${href}`);
     }
   }
 
@@ -155,7 +198,7 @@ function main(): void {
   try {
     const sitemap = readFileSync(join(OUT, "sitemap.xml"), "utf8");
     const urls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
-    ok(urls.length === PAGE_COUNT * LANGS.length + 1, "sitemap", `ссылок ${urls.length}`);
+    ok(urls.length === PAGE_COUNT * LANGS.length + LANGS.length + 1, "sitemap", `ссылок ${urls.length}`);
     ok(sitemap.includes(SITE + "/"), "sitemap", "нет главной страницы");
     for (const url of urls) {
       ok(url.startsWith(SITE), "sitemap", `чужой домен в sitemap: ${url}`);
@@ -172,7 +215,7 @@ function main(): void {
   }
 
   // --- итог ---
-  console.log(`проверок: ${checks}, страниц: ${PAGE_COUNT * LANGS.length}`);
+  console.log(`проверок: ${checks}, страниц: ${PAGE_COUNT * LANGS.length + LANGS.length}`);
   if (fails.length > 0) {
     for (const f of fails) console.log(`  ✗ ${f.page} — ${f.message}`);
     console.log(`\nПровалов: ${fails.length}`);

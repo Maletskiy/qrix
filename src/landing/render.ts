@@ -1,5 +1,5 @@
 /**
- * Сборка страницы в HTML.
+ * Сборка страниц в HTML.
  *
  * Никакого React и гидратации: страница отдаётся готовой, поэтому краулер
  * видит текст сразу, а браузер не грузит 440 КБ приложения ради статьи.
@@ -51,76 +51,157 @@ function short(text: string, limit = 120): string {
   return (space > 40 ? cut.slice(0, space) : cut).replace(/[.,;:—-]$/, "") + "…";
 }
 
-function pageUrl(site: string, lang: Lang, bundles: Record<Lang, LandingBundle>, index: number): string {
+function pageUrl(
+  site: string,
+  bundles: Record<Lang, LandingBundle>,
+  lang: Lang,
+  index: number
+): string {
   return `${site}/${lang}/${bundles[lang].pages[index].slug}/`;
 }
 
-function renderLangs(
-  site: string,
-  lang: Lang,
-  bundles: Record<Lang, LandingBundle>,
-  index: number
-): string {
-  const links = ORDER.map((code) => {
-    const bundle = bundles[code];
-    const current = code === lang;
-    // код языка, а не первые буквы названия: «Русский» превращался в «РУ»,
-    // что в латинице читается как «PY»
-    return `        <a href="${pageUrl(site, code, bundles, index)}" hreflang="${code}" title="${esc(
-      bundle.chrome.langName
-    )}"${current ? ' aria-current="page"' : ""}>${code.toUpperCase()}</a>`;
-  });
-  return `      <nav class="langs" aria-label="${esc(bundles[lang].chrome.langSwitchLabel)}">\n${links.join(
-    "\n"
-  )}\n      </nav>`;
+function hubUrl(site: string, lang: Lang): string {
+  return `${site}/${lang}/`;
 }
 
-function renderAlternates(
-  site: string,
-  bundles: Record<Lang, LandingBundle>,
-  index: number
-): string {
+/** Набор адресов одной сущности на всех языках — для hreflang и переключателя. */
+function urlsByLang(build: (lang: Lang) => string): Record<Lang, string> {
+  return ORDER.reduce((acc, code) => {
+    acc[code] = build(code);
+    return acc;
+  }, {} as Record<Lang, string>);
+}
+
+function alternates(urls: Record<Lang, string>): string {
   const lines = ORDER.map(
-    (code) =>
-      `  <link rel="alternate" hreflang="${code}" href="${pageUrl(site, code, bundles, index)}">`
+    (code) => `  <link rel="alternate" hreflang="${code}" href="${urls[code]}">`
   );
-  lines.push(`  <link rel="alternate" hreflang="x-default" href="${pageUrl(site, "en", bundles, index)}">`);
+  lines.push(`  <link rel="alternate" hreflang="x-default" href="${urls.en}">`);
   return lines.join("\n");
 }
 
-function renderGuides(
+function head(args: {
+  lang: Lang;
+  title: string;
+  description: string;
+  canonical: string;
+  urls: Record<Lang, string>;
+  jsonLd: unknown;
+  type: "article" | "website";
+}): string {
+  const { lang, title, description, canonical, urls, jsonLd, type } = args;
+  return `<meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#030304">
+  <title>${esc(title)}</title>
+  <meta name="description" content="${esc(description)}">
+  <link rel="canonical" href="${canonical}">
+${alternates(urls)}
+  <link rel="icon" type="image/svg+xml" href="/qrix-logo.svg">
+  <link rel="stylesheet" href="/landing.css">
+  <link rel="preload" href="/fonts/medeo/MedeoSansVariable.woff2" as="font" type="font/woff2" crossorigin>
+
+  <meta property="og:type" content="${type}">
+  <meta property="og:site_name" content="Qrix">
+  <meta property="og:url" content="${canonical}">
+  <meta property="og:locale" content="${OG_LOCALE[lang]}">
+  <meta property="og:title" content="${esc(title)}">
+  <meta property="og:description" content="${esc(description)}">
+  <meta property="og:image" content="https://qr-ix.com/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${esc(title)}">
+  <meta name="twitter:description" content="${esc(description)}">
+  <meta name="twitter:image" content="https://qr-ix.com/og.png">
+
+  <script type="application/ld+json">${ld(jsonLd)}</script>`;
+}
+
+function bar(args: {
+  lang: Lang;
+  bundles: Record<Lang, LandingBundle>;
+  urls: Record<Lang, string>;
+}): string {
+  const { lang, bundles, urls } = args;
+  const chrome = bundles[lang].chrome;
+
+  // код языка, а не первые буквы названия: «Русский» превращался в «РУ»,
+  // что в латинице читается как «PY»
+  const links = ORDER.map((code) => {
+    const current = code === lang;
+    return `        <a href="${urls[code]}" hreflang="${code}" title="${esc(
+      bundles[code].chrome.langName
+    )}"${current ? ' aria-current="page"' : ""}>${code.toUpperCase()}</a>`;
+  }).join("\n");
+
+  return `<header class="bar">
+    <div class="wrap bar__inner">
+      <a class="brand" href="/">
+        <img src="/qrix-logo.svg" alt="" width="26" height="26" aria-hidden="true">
+        <b>Qrix</b>
+        <span>${esc(chrome.tagline)}</span>
+      </a>
+      <nav class="langs" aria-label="${esc(chrome.langSwitchLabel)}">
+${links}
+      </nav>
+    </div>
+  </header>`;
+}
+
+/** Хлебные крошки: генератор → список гайдов → текущая страница. */
+function crumbs(
   chrome: LandingBundle["chrome"],
+  hub: string,
+  current: string,
+  showHub: boolean
+): string {
+  const hubItem = showHub
+    ? `\n      <span class="crumbs__sep" aria-hidden="true">·</span>\n      <a href="${hub}">${esc(
+        chrome.hubTitle
+      )}</a>`
+    : "";
+  return `<nav class="crumbs" aria-label="Breadcrumb">
+      <a href="/">${esc(chrome.breadcrumbHome)}</a>${hubItem}
+      <span class="crumbs__sep" aria-hidden="true">·</span>
+      <span class="crumbs__current">${esc(current)}</span>
+    </nav>`;
+}
+
+function footer(chrome: LandingBundle["chrome"]): string {
+  return `<footer class="footer">
+      <p>${esc(chrome.footerNote)}</p>
+      <a href="/">${esc(chrome.footerAuthor)}</a>
+    </footer>`;
+}
+
+function guideCards(
   site: string,
   lang: Lang,
   bundles: Record<Lang, LandingBundle>,
-  index: number
+  skipIndex: number | null
 ): string {
-  const items = bundles[lang].pages
-    .map((other, i) => ({ other, i }))
-    .filter(({ i }) => i !== index)
+  return bundles[lang].pages
+    .map((page, index) => ({ page, index }))
+    .filter(({ index }) => index !== skipIndex)
     .map(
-      ({ other, i }) =>
-        `          <li><a href="${pageUrl(site, lang, bundles, i)}"><strong>${esc(
-          other.title
-        )}</strong><span>${esc(short(other.lede, 160))}</span></a></li>`
-    );
-
-  return `      <section class="guides" aria-labelledby="guides-title">
-        <h2 id="guides-title">${esc(chrome.guidesTitle)}</h2>
-        <ul class="guides__list">
-${items.join("\n")}
-        </ul>
-      </section>`;
+      ({ page, index }) =>
+        `          <li><a href="${pageUrl(site, bundles, lang, index)}"><strong>${esc(
+          page.title
+        )}</strong><span>${esc(short(page.lede, 160))}</span></a></li>`
+    )
+    .join("\n");
 }
 
-/** Одна страница целиком. */
+/** Одна страница-гайд. */
 export function renderPage({ index, lang, bundles, site, qrSvg }: RenderArgs): string {
   const bundle = bundles[lang];
   const page = bundle.pages[index];
   const chrome = bundle.chrome;
 
-  const url = pageUrl(site, lang, bundles, index);
+  const urls = urlsByLang((code) => pageUrl(site, bundles, code, index));
+  const url = urls[lang];
   const home = `${site}/`;
+  const hub = hubUrl(site, lang);
 
   const sections = page.sections
     .map(
@@ -156,7 +237,8 @@ ${section.paragraphs.map((text) => `          <p>${esc(text)}</p>`).join("\n")}
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: chrome.breadcrumbHome, item: home },
-          { "@type": "ListItem", position: 2, name: page.title, item: url },
+          { "@type": "ListItem", position: 2, name: chrome.hubTitle, item: hub },
+          { "@type": "ListItem", position: 3, name: page.title, item: url },
         ],
       },
       {
@@ -173,52 +255,23 @@ ${section.paragraphs.map((text) => `          <p>${esc(text)}</p>`).join("\n")}
   return `<!doctype html>
 <html lang="${esc(chrome.htmlLang)}">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="color-scheme" content="dark">
-  <meta name="theme-color" content="#030304">
-  <title>${esc(page.title)}</title>
-  <meta name="description" content="${esc(page.description)}">
-  <link rel="canonical" href="${url}">
-${renderAlternates(site, bundles, index)}
-  <link rel="icon" type="image/svg+xml" href="/qrix-logo.svg">
-  <link rel="stylesheet" href="/landing.css">
-  <link rel="preload" href="/fonts/medeo/MedeoSansVariable.woff2" as="font" type="font/woff2" crossorigin>
-
-  <meta property="og:type" content="article">
-  <meta property="og:site_name" content="Qrix">
-  <meta property="og:url" content="${url}">
-  <meta property="og:locale" content="${OG_LOCALE[lang]}">
-  <meta property="og:title" content="${esc(page.title)}">
-  <meta property="og:description" content="${esc(page.description)}">
-  <meta property="og:image" content="${site}/og.png">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="${esc(page.title)}">
-  <meta name="twitter:description" content="${esc(page.description)}">
-  <meta name="twitter:image" content="${site}/og.png">
-
-  <script type="application/ld+json">${ld(jsonLd)}</script>
+  ${head({
+    lang,
+    title: page.title,
+    description: page.description,
+    canonical: url,
+    urls,
+    jsonLd,
+    type: "article",
+  })}
 </head>
 <body>
   <a class="skip" href="#main">${esc(chrome.openApp)}</a>
 
-  <header class="bar">
-    <div class="wrap bar__inner">
-      <a class="brand" href="/">
-        <img src="/qrix-logo.svg" alt="" width="26" height="26" aria-hidden="true">
-        <b>Qrix</b>
-        <span>${esc(chrome.tagline)}</span>
-      </a>
-${renderLangs(site, lang, bundles, index)}
-    </div>
-  </header>
+  ${bar({ lang, bundles, urls })}
 
   <div class="wrap">
-    <nav class="crumbs" aria-label="Breadcrumb">
-      <a href="/">${esc(chrome.breadcrumbHome)}</a>
-      <span class="crumbs__sep" aria-hidden="true">·</span>
-      <span class="crumbs__current">${esc(page.title)}</span>
-    </nav>
+    ${crumbs(chrome, hub, page.title, true)}
 
     <main id="main">
       <section class="hero">
@@ -254,13 +307,97 @@ ${faq}
         </div>
       </section>
 
-${renderGuides(chrome, site, lang, bundles, index)}
+      <section class="guides" aria-labelledby="guides-title">
+        <h2 id="guides-title">${esc(chrome.guidesTitle)}</h2>
+        <ul class="guides__list">
+${guideCards(site, lang, bundles, index)}
+          <li><a href="${hub}"><strong>${esc(chrome.hubTitle)}</strong><span>${esc(
+    short(chrome.hubLede, 140)
+  )}</span></a></li>
+        </ul>
+      </section>
     </main>
 
-    <footer class="footer">
-      <p>${esc(chrome.footerNote)}</p>
-      <a href="/">${esc(chrome.footerAuthor)}</a>
-    </footer>
+    ${footer(chrome)}
+  </div>
+</body>
+</html>
+`;
+}
+
+/** Список всех гайдов на языке: /<lang>/ */
+export function renderHub(args: {
+  lang: Lang;
+  bundles: Record<Lang, LandingBundle>;
+  site: string;
+}): string {
+  const { lang, bundles, site } = args;
+  const chrome = bundles[lang].chrome;
+  const urls = urlsByLang((code) => hubUrl(site, code));
+  const url = urls[lang];
+  const home = `${site}/`;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "@id": url,
+        url,
+        name: chrome.hubTitle,
+        description: chrome.hubLede,
+        inLanguage: lang,
+        isPartOf: { "@type": "WebSite", "@id": home, name: "Qrix", url: home },
+        hasPart: bundles[lang].pages.map((page, index) => ({
+          "@type": "Article",
+          headline: page.title,
+          url: pageUrl(site, bundles, lang, index),
+        })),
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: chrome.breadcrumbHome, item: home },
+          { "@type": "ListItem", position: 2, name: chrome.hubTitle, item: url },
+        ],
+      },
+    ],
+  };
+
+  return `<!doctype html>
+<html lang="${esc(chrome.htmlLang)}">
+<head>
+  ${head({
+    lang,
+    title: `${chrome.hubTitle} — Qrix`,
+    description: chrome.hubLede,
+    canonical: url,
+    urls,
+    jsonLd,
+    type: "website",
+  })}
+</head>
+<body>
+  <a class="skip" href="#main">${esc(chrome.openApp)}</a>
+
+  ${bar({ lang, bundles, urls })}
+
+  <div class="wrap">
+    ${crumbs(chrome, url, chrome.hubTitle, false)}
+
+    <main id="main">
+      <section class="hub">
+        <h1>${esc(chrome.hubTitle)}</h1>
+        <p class="lede">${esc(chrome.hubLede)}</p>
+        <a class="btn" href="/">${esc(chrome.openApp)}</a>
+      </section>
+
+      <ul class="guides__list">
+${guideCards(site, lang, bundles, null)}
+      </ul>
+    </main>
+
+    ${footer(chrome)}
   </div>
 </body>
 </html>

@@ -57,6 +57,10 @@ export type LandingChrome = {
   demoTitle: string;
   faqTitle: string;
   guidesTitle: string;
+  /** Заголовок страницы-списка всех гайдов: /<lang>/ */
+  hubTitle: string;
+  /** Подзаголовок списка гайдов */
+  hubLede: string;
   footerNote: string;
   breadcrumbHome: string;
   langSwitchLabel: string;

@@ -2229,6 +2229,20 @@ select.input {
   gap: 0.3rem;
 }
 
+.footer__guides {
+  color: var(--muted);
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 3px;
+  width: fit-content;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+}
+
+.footer__guides:hover {
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+
 .footer__author {
   position: relative;
   display: inline-block;

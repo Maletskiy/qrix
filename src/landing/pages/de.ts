@@ -8,6 +8,8 @@ const chrome = {
   demoTitle: "Was in diesem Code steckt",
   faqTitle: "Kurz das Wichtigste",
   guidesTitle: "Weitere Anleitungen",
+  hubTitle: "QR-Code-Ratgeber",
+  hubLede: "Praxisnahe Anleitungen: WLAN für Gäste, Logo im Code, Bitcoin-Zahlung und Vektor für den Druck.",
   footerNote: "Die Codes entstehen vollständig im Browser — Adressen, Passwörter und Beträge werden nirgendwohin gesendet.",
   breadcrumbHome: "QR-Code-Generator",
   langSwitchLabel: "Sprache der Seite",

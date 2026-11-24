@@ -130,6 +130,8 @@ Beyond the generator, the build emits static guides for long-tail search: four t
 
 These are not React: `scripts/build-pages.ts` turns the data in `src/landing/pages/<lang>.ts` into ready HTML at build time. Crawlers see the copy immediately and the browser does not download a 440 KB app to read an article. The QR on every page is real — rendered by the same `renderSvg` as the generator, logo cut-out included.
 
+Above the guides there is an index per language — `/en/`, `/ru/`, `/fr/`, `/de/`, `/es/` — and the only entry point from the app: a “QR code guides” link in the generator footer.
+
 Adding a topic means adding one object per language file at the same position: the count and order must match across languages. The build then produces URLs, `hreflang`, `sitemap.xml` and `robots.txt` by itself.
 
 ```bash

@@ -9,6 +9,7 @@ export const fr: Dict = {
     "Les QR codes sont générés entièrement dans le navigateur — adresses, mots de passe et montants ne sont jamais envoyés.",
   "app.footerAnalytics": "Mesure d'audience — sans cookies et sans le contenu des codes.",
   "app.footerFormats": "Export PNG et SVG · prise en charge de BIP-21, ERC-681, Solana Pay et TON",
+  "app.footerGuides": "Guides QR code",
   "app.reset": "Réinitialiser",
 
   "content.title": "Contenu",

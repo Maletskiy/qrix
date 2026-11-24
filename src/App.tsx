@@ -192,6 +192,10 @@ export default function App() {
         <div className="footer__left">
           <span>{t("app.footerPrivacy")}</span>
           <span>{t("app.footerFormats")}</span>
+          {/* ссылка на статические гайды: единственный вход в них из приложения */}
+          <a className="footer__guides" href={`/${lang}/`}>
+            {t("app.footerGuides")}
+          </a>
           {/* раскрытие не прячется от DNT и GPC — только если счётчик выключен в конфиге */}
           {isAnalyticsConfigured() && <span>{t("app.footerAnalytics")}</span>}
         </div>
