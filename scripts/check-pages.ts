@@ -150,12 +150,17 @@ function main(): void {
       // --- обложка: файл на месте и указан в og:image ---
       const cover = `/covers/${lang}-${page.slug}.png`;
       ok(existsSync(join(OUT, cover)), where, `нет обложки ${cover}`);
+      const thumb = `/covers/${lang}-${page.slug}-sm.png`;
+      ok(existsSync(join(OUT, thumb)), where, `нет компактной обложки ${thumb}`);
       const ogImage = attr(html, /<meta property="og:image" content="([^"]+)"/);
       ok(ogImage === `${SITE}${cover}`, where, `og:image: ${ogImage ?? "нет"}`);
 
       // --- карточки других гайдов: у каждой есть картинка ---
       const cardImgs = [...html.matchAll(/<li><a href="[^"]+"><img src="([^"]+)"/g)].map((m) => m[1]);
       ok(cardImgs.length >= 1, where, "в карточках нет превью");
+      for (const src of cardImgs) {
+        ok(src.endsWith("-sm.png"), where, `карточка грузит полную обложку: ${src}`);
+      }
       for (const src of cardImgs) {
         ok(existsSync(join(OUT, src)), where, `нет файла превью ${src}`);
       }

@@ -141,7 +141,7 @@ npm run check:pages  # verify the generated output
 
 `check:pages` decodes the code on every page and compares it with the promised string, then checks canonical, all six `hreflang` entries, `title`/`description` lengths, `FAQPage` markup, and that cross-links resolve. It belongs in CI next to `verify` — one command, though the workflow has no such step yet.
 
-Every guide has a 1200×630 cover (`dist/covers/`): it serves as `og:image` and as the thumbnail in list cards. The title is converted to outlines with opentype.js because resvg cannot read our woff2 files, so the image is built without system fonts and looks the same on any machine.
+Every guide has a cover (`dist/covers/`) in two sizes: 1200×630 for `og:image` and 600×315 for list cards: it serves as `og:image` and as the thumbnail in list cards. The title is converted to outlines with opentype.js because resvg cannot read our woff2 files, so the image is built without system fonts and looks the same on any machine.
 
 Page type is the same Google Sans as the generator: the files in `public/fonts/` are shared, so the guides and the app read as one product. Styles live in `public/landing.css`.
 
