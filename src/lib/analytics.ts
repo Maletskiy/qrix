@@ -151,6 +151,10 @@ export function initAnalytics(): void {
   script.dataset.websiteId = siteId();
   // скрипт сам уважает DNT — дублируем свою проверку выше его настройкой
   script.dataset.doNotTrack = "true";
+  // Ссылки-заготовки несут в query само содержимое: ?address=, ?password=,
+  // ?link=. Без этого Umami записал бы их вместе с просмотром страницы.
+  script.dataset.excludeSearch = "true";
+  script.dataset.excludeHash = "true";
   script.onload = () => {
     mode = "ready";
     flush();

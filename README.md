@@ -121,6 +121,8 @@ then run `npm run verify` to make sure the codes still decode.
 
 We count actions, never content. Only event names and service values leave the browser: content type, coin id, export format, language, payload size as a bucket. Addresses, links, texts, Wi-Fi passwords, e-mail, phones, the uploaded logo and the QR code itself never do. The guard in `src/lib/analytics.ts` drops an event entirely when a value does not look like a service identifier — user data is blocked, not stripped.
 
+The tracked URL is stripped as well: share links carry content in the query string (`?address=`, `?password=`, `?link=`), so the counter gets `data-exclude-search` and `data-exclude-hash` and only the path is recorded.
+
 The counter is [Umami](https://umami.is): cookieless, no personal data, no GDPR consent banner. It is MIT-licensed, so a self-hosted instance is one environment variable away.
 
 The site id is already in `src/lib/analytics.ts` (`DEFAULT_SITE_ID`). It is a public identifier — visible in the page source anyway — so a Vercel, Netlify or self-hosted build counts events without any variable setup.
