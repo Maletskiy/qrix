@@ -292,45 +292,48 @@ ${section.paragraphs.map((text) => `          <p>${esc(text)}</p>`).join("\n")}
     ${crumbs(chrome, hub, page.title, true)}
 
     <main id="main">
-      <section class="hero">
-        <div class="hero__text">
+      <div class="layout">
+        <div class="layout__intro">
           <h1>${esc(page.h1)}</h1>
           <p class="lede">${esc(page.lede)}</p>
-          <a class="btn" href="${esc(page.ctaHref)}">${esc(page.cta)}</a>
         </div>
 
-        <figure class="card">
-          <div class="card__qr">${qrSvg}</div>
-          <div class="card__meta">
-            <span class="card__label">${esc(chrome.demoTitle)}</span>
-            <code class="card__value">${esc(page.demo.value)}</code>
+        <aside class="layout__aside">
+          <figure class="card">
+            <div class="card__qr">${qrSvg}</div>
+            <div class="card__meta">
+              <span class="card__label">${esc(chrome.demoTitle)}</span>
+              <code class="card__value">${esc(page.demo.value)}</code>
+            </div>
+            <figcaption>${esc(page.demo.label)}</figcaption>
+          </figure>
+
+          <div class="cta-end">
+            <a class="btn" href="${esc(page.ctaHref)}">${esc(page.cta)}</a>
+            <a class="btn btn--ghost" href="/">${esc(chrome.openApp)}</a>
           </div>
-          <figcaption>${esc(page.demo.label)}</figcaption>
-        </figure>
-      </section>
+        </aside>
 
-      <article class="prose">
+        <div class="layout__body">
+          <article class="prose">
 ${sections}
-      </article>
+          </article>
 
-      <div class="cta-end">
-        <a class="btn" href="${esc(page.ctaHref)}">${esc(page.cta)}</a>
-        <a class="btn btn--ghost" href="/">${esc(chrome.openApp)}</a>
-      </div>
-
-      <section class="faq" aria-labelledby="faq-title">
-        <h2 id="faq-title">${esc(chrome.faqTitle)}</h2>
-        <div class="faq__grid">
+          <section class="faq" aria-labelledby="faq-title">
+            <h2 id="faq-title">${esc(chrome.faqTitle)}</h2>
+            <div class="faq__grid">
 ${faq}
-        </div>
-      </section>
+            </div>
+          </section>
 
-      <section class="guides" aria-labelledby="guides-title">
-        <h2 id="guides-title">${esc(chrome.guidesTitle)}</h2>
-        <ul class="guides__list">
+          <section class="guides" aria-labelledby="guides-title">
+            <h2 id="guides-title">${esc(chrome.guidesTitle)}</h2>
+            <ul class="guides__list">
 ${guideCards(site, lang, bundles, index)}
-        </ul>
-      </section>
+            </ul>
+          </section>
+        </div>
+      </div>
     </main>
 
     ${footer(chrome)}

@@ -330,74 +330,63 @@ code {
   }
 }
 
-.hero {
+/* Раскладка страницы: вводный блок и текст слева, код и кнопки справа.
+   Правая колонка липкая, поэтому код и действия остаются на экране,
+   пока читаешь статью. */
+.layout {
   display: grid;
-  gap: 32px;
-  padding: 28px 0 48px;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-areas:
+    "intro aside"
+    "body  aside";
+  column-gap: 56px;
+  row-gap: 24px;
   align-items: start;
+  padding: 28px 0 0;
 }
 
-@media (min-width: 900px) {
-  .hero {
-    grid-template-columns: minmax(0, 1fr) 360px;
-    gap: 56px;
-    padding: 40px 0 64px;
-  }
-}
-
-.hero__text {
+.layout__intro {
+  grid-area: intro;
   display: flex;
   flex-direction: column;
-  gap: 18px;
   align-items: flex-start;
+  gap: 16px;
+}
+
+.layout__aside {
+  grid-area: aside;
+  position: sticky;
+  top: 84px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.layout__body {
+  grid-area: body;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "intro"
+      "aside"
+      "body";
+    row-gap: 20px;
+    padding-top: 20px;
+  }
+
+  /* на телефоне липкость только мешает: карточка уходит вверх вместе с текстом */
+  .layout__aside {
+    position: static;
+  }
 }
 
 .lede {
   font-size: var(--text-lg);
   color: var(--muted);
   max-width: 56ch;
-}
-
-/* Кнопка повторяет сервисную: тот же радиус, цвета, ховер и сдвиг при
-   нажатии. Отступы крупнее — на странице-гайде кнопка стоит одна и должна
-   читаться рядом с заголовком в 48px. */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0.8rem 2rem;
-  border: 1px solid var(--accent);
-  border-radius: var(--radius-sm);
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-family: inherit;
-  font-size: 0.95rem;
-  font-weight: 500;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
-}
-
-.btn:hover {
-  background: #ddff4d;
-  border-color: #ddff4d;
-  color: var(--accent-ink);
-}
-
-.btn:active {
-  transform: translateY(1px);
-}
-
-.btn--ghost {
-  background: transparent;
-  border-color: var(--line-strong);
-  color: var(--ink);
-}
-
-.btn--ghost:hover {
-  background: #1d2024;
-  border-color: #43464b;
-  color: var(--ink);
 }
 
 /* --- карточка с кодом --- */
@@ -614,16 +603,64 @@ code {
 
 /* --- финальный призыв --- */
 
+/* Кнопка повторяет сервисную: тот же радиус, цвета, ховер и сдвиг при
+   нажатии. Отступы крупнее — на странице-гайде кнопка стоит одна и должна
+   читаться рядом с заголовком в 48px. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.8rem 2rem;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.btn:hover {
+  background: #ddff4d;
+  border-color: #ddff4d;
+  color: var(--accent-ink);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn--ghost {
+  background: transparent;
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.btn--ghost:hover {
+  background: #1d2024;
+  border-color: #43464b;
+  color: var(--ink);
+}
+
 .cta-end {
-  margin-top: 56px;
-  padding: 32px;
+  margin-top: 0;
+  padding: 14px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  align-items: flex-start;
+  gap: 8px;
+  align-items: stretch;
+}
+
+/* в узкой колонке кнопки тянем на всю ширину, иначе они выглядят обрубками */
+.layout__aside .btn {
+  justify-content: center;
+  width: 100%;
 }
 
 @media (prefers-reduced-motion: reduce) {
