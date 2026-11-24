@@ -2250,17 +2250,15 @@ select.input {
 }
 
 .footer__guides {
+  position: relative;
+  display: inline-block;
   color: var(--muted);
-  text-decoration: underline;
-  text-decoration-color: var(--line-strong);
-  text-underline-offset: 3px;
-  width: fit-content;
-  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 .footer__guides:hover {
-  color: var(--accent);
-  text-decoration-color: var(--accent);
+  color: var(--ink);
 }
 
 .footer__author {
@@ -2270,7 +2268,8 @@ select.input {
   text-decoration: none;
 }
 
-.footer__author .line {
+.footer__author .line,
+.footer__guides .line {
   position: absolute;
   top: 100%;
   left: 50%;
@@ -2281,7 +2280,8 @@ select.input {
   pointer-events: none;
 }
 
-.footer__author:hover .line {
+.footer__author:hover .line,
+.footer__guides:hover .line {
   left: 0;
   width: 100%;
 }

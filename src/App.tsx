@@ -199,6 +199,7 @@ export default function App() {
           {/* ссылка на статические гайды: единственный вход в них из приложения */}
           <a className="footer__guides" href={`/${lang}/`}>
             {t("app.footerGuides")}
+            <span className="line" aria-hidden="true" />
           </a>
           <span className="footer__built">
             Built by{" "}
