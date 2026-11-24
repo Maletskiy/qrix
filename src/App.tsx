@@ -8,7 +8,7 @@ import type { QrConfig } from "./lib/config";
 import { encodeMatrix } from "./lib/qr";
 import { buildScene, ensureCaptionGlyphs, renderSvg } from "./lib/render";
 import { BRAND_ACCENT, accentFromLogo } from "./lib/accent";
-import { isAnalyticsEnabled, payloadBucket, track, trackOnce } from "./lib/analytics";
+import { isAnalyticsConfigured, payloadBucket, track, trackOnce } from "./lib/analytics";
 import { buildPayload } from "./lib/payload";
 import { LANGS, t } from "./lib/i18n";
 import { useSlidingThumb } from "./components/ui";
@@ -192,8 +192,8 @@ export default function App() {
         <div className="footer__left">
           <span>{t("app.footerPrivacy")}</span>
           <span>{t("app.footerFormats")}</span>
-          {/* строка появляется только когда счётчик действительно подключён */}
-          {isAnalyticsEnabled() && <span>{t("app.footerAnalytics")}</span>}
+          {/* раскрытие не прячется от DNT и GPC — только если счётчик выключен в конфиге */}
+          {isAnalyticsConfigured() && <span>{t("app.footerAnalytics")}</span>}
         </div>
         <div className="footer__right">
           Built by{" "}
