@@ -8,5 +8,6 @@ scripts/verify.mjs
 .vercel
 .vercel-cli
 .env*
+!.env.example
 *.tsbuildinfo
 .npm-cache

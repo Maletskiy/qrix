@@ -1,6 +1,7 @@
 import { COINS, COIN_SCHEME, checkAddress, coinById } from "../lib/coins";
 import type { ContactState, CryptoState, EmailState, QrConfig, WifiState } from "../lib/config";
 import { CONTENT_TYPES } from "../lib/payload";
+import { track } from "../lib/analytics";
 import { t } from "../lib/i18n";
 import { formatPhone } from "../lib/phone";
 import { useEffect, useRef, useState } from "react";
@@ -81,7 +82,10 @@ export default function ContentPanel({ config, onChange }: Props) {
         <Segmented
           value={config.type}
           options={CONTENT_TYPES.map((item) => ({ value: item.value, label: t(item.labelKey) }))}
-          onChange={(v) => onChange({ type: v })}
+          onChange={(v) => {
+            track("content_type", { type: v });
+            onChange({ type: v });
+          }}
           wrap
         />
 
@@ -98,7 +102,10 @@ export default function ContentPanel({ config, onChange }: Props) {
                     key={c.id}
                     type="button"
                     className={"coin" + (c.id === coin.id ? " is-active" : "")}
-                    onClick={() => setCrypto({ coinId: c.id })}
+                    onClick={() => {
+                      track("coin_select", { coin: c.id });
+                      setCrypto({ coinId: c.id });
+                    }}
                     title={`${c.name} · ${c.network}`}
                   >
                     <img className="coin__logo" src={c.logo} alt="" width={22} height={22} />
@@ -363,7 +370,10 @@ export default function ContentPanel({ config, onChange }: Props) {
       {coinSheet && (
         <CoinSheet
           current={coin}
-          onSelect={(id) => setCrypto({ coinId: id })}
+          onSelect={(id) => {
+            track("coin_select", { coin: id });
+            setCrypto({ coinId: id });
+          }}
           onClose={() => setCoinSheet(false)}
         />
       )}

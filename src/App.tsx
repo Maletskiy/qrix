@@ -8,6 +8,7 @@ import type { QrConfig } from "./lib/config";
 import { encodeMatrix } from "./lib/qr";
 import { buildScene, ensureCaptionGlyphs, renderSvg } from "./lib/render";
 import { BRAND_ACCENT, accentFromLogo } from "./lib/accent";
+import { isAnalyticsEnabled, payloadBucket, track, trackOnce } from "./lib/analytics";
 import { buildPayload } from "./lib/payload";
 import { LANGS, t } from "./lib/i18n";
 import { useSlidingThumb } from "./components/ui";
@@ -98,6 +99,30 @@ export default function App() {
 
   const error = encoded && !encoded.ok ? encoded.error : null;
 
+  // Аналитика: факт открытия, первое готовое изображение и смена языка.
+  // Содержимое кода сюда не попадает — только тип, размер по корзинам и ecc.
+  useEffect(() => {
+    trackOnce("app_open", "app_open", {
+      lang,
+      deep_link: window.location.search.length > 0,
+    });
+  }, []);
+
+  const trackedLang = useRef(lang);
+  useEffect(() => {
+    if (trackedLang.current === lang) return;
+    trackedLang.current = lang;
+    track("lang_switch", { lang });
+  }, [lang]);
+
+  useEffect(() => {
+    if (!encoded?.ok || !payload.value.trim()) return;
+    trackOnce("qr_ready", "qr_ready", {
+      size: payloadBucket(payload.value.length),
+      ecc: config.style.ecc,
+    });
+  }, [encoded, payload.value, config.style.ecc]);
+
   useEffect(() => {
     document.title = `Qrix — ${t("app.tagline")}`;
   }, [lang]);
@@ -142,6 +167,7 @@ export default function App() {
             type="button"
             className="btn btn--ghost"
             onClick={() => {
+              track("reset", {});
               setConfig(defaultConfig);
               window.history.replaceState(null, "", window.location.pathname);
             }}
@@ -166,6 +192,8 @@ export default function App() {
         <div className="footer__left">
           <span>{t("app.footerPrivacy")}</span>
           <span>{t("app.footerFormats")}</span>
+          {/* строка появляется только когда счётчик действительно подключён */}
+          {isAnalyticsEnabled() && <span>{t("app.footerAnalytics")}</span>}
         </div>
         <div className="footer__right">
           Built by{" "}

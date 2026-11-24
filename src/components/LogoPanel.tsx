@@ -2,6 +2,7 @@ import { useRef } from "react";
 import type { QrConfig, StyleState } from "../lib/config";
 import { readFileAsDataUrl } from "../lib/export";
 import { t } from "../lib/i18n";
+import { track } from "../lib/analytics";
 import { Section, Slider } from "./ui";
 
 type Props = {
@@ -19,10 +20,13 @@ export default function LogoPanel({ config, onChange }: Props) {
   const pickLogo = async (file: File | undefined) => {
     if (!file) return;
     if (file.size > 1024 * 1024) {
+      track("logo_upload", { ok: false });
       alert(t("style.logoTooBig"));
       return;
     }
     set({ logo: await readFileAsDataUrl(file) });
+    // сам файл и его содержимое не отправляем — только факт загрузки
+    track("logo_upload", { ok: true });
   };
 
   return (

@@ -4,6 +4,7 @@ import type { QrConfig, StyleState } from "../lib/config";
 import type { DotStyle, EyeBallStyle, EyeFrameStyle, GradientKind } from "../lib/render";
 import { DECORATIVE_DOTS, DOTS_SAFE_SCALE, DOT_STYLES, EYE_BALLS, EYE_FRAMES, SAFE_SHAPE_SCALE } from "../lib/styles";
 import { plural, t } from "../lib/i18n";
+import { track } from "../lib/analytics";
 import ShapeIcon from "./ShapeIcon";
 import DirIcon from "./DirIcon";
 import {
@@ -131,14 +132,15 @@ export default function StylePanel({ config, onChange }: Props) {
                           className={"palette" + (active ? " is-active" : "")}
                           title={t(p.nameKey)}
                           aria-label={t(p.nameKey)}
-                          onClick={() =>
+                          onClick={() => {
+                            track("palette_apply", { palette: p.nameKey.replace(/^palette\./, "") });
                             set({
                               color1: p.c1,
                               color2: p.c2,
                               bgColor: p.bg,
                               bgTransparent: false,
-                            })
-                          }
+                            });
+                          }}
                         >
                           <span
                             className="palette__chip"
@@ -219,7 +221,10 @@ export default function StylePanel({ config, onChange }: Props) {
         <div className="stack">
           <Toggle
             checked={style.caption.enabled}
-            onChange={(v) => setCaption({ enabled: v })}
+            onChange={(v) => {
+              track("caption_toggle", { on: v });
+              setCaption({ enabled: v });
+            }}
             label={t("style.captionShow")}
           />
           {/* Содержимое подписи всегда смонтировано: так его можно плавно
@@ -306,7 +311,10 @@ export default function StylePanel({ config, onChange }: Props) {
                 { value: "Q", label: t("style.ecc.Q"), title: t("style.ecc.Q.title") },
                 { value: "H", label: t("style.ecc.H"), title: t("style.ecc.H.title") },
               ]}
-              onChange={(v) => set({ ecc: v })}
+              onChange={(v) => {
+                track("ecc_change", { ecc: v });
+                set({ ecc: v });
+              }}
             />
           </div>
         </div>

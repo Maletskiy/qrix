@@ -7,6 +7,7 @@ export const de: Dict = {
   "app.captionHint": "Beschriftung: {label}",
   "app.footerPrivacy":
     "QR-Codes entstehen vollständig im Browser — Adressen, Passwörter und Beträge werden nirgendwohin gesendet.",
+  "app.footerAnalytics": "Reichweitenmessung — ohne Cookies und ohne Inhalte der Codes.",
   "app.footerFormats": "Export als PNG und SVG · Unterstützung für BIP-21, ERC-681, Solana Pay und TON",
   "app.reset": "Zurücksetzen",
 

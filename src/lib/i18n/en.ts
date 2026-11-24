@@ -6,6 +6,7 @@ export const en: Dict = {
   "app.captionHint": "Caption: {label}",
   "app.footerPrivacy":
     "QR codes are generated entirely in your browser — addresses, passwords and amounts never leave your device.",
+  "app.footerAnalytics": "Visit analytics — no cookies, no code contents.",
   "app.footerFormats": "PNG and SVG export · BIP-21, ERC-681, Solana Pay and TON support",
   "app.reset": "Reset",
 

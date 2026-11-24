@@ -8,6 +8,7 @@ import type { Scene } from "../lib/render";
 import QrCanvas from "./QrCanvas";
 import { AutoHeight } from "./ui";
 import { useI18n } from "../lib/i18n/useI18n";
+import { track, trackOnce } from "../lib/analytics";
 
 type Props = {
   svg: string;
@@ -31,8 +32,9 @@ export default function Preview({ svg, scene, accent, payload, config, error }: 
   const actionsRef = useRef<HTMLDivElement | null>(null);
   const [barVisible, setBarVisible] = useState(false);
 
+  // kind — стабильный идентификатор для аналитики, text — то, что видит человек
   const warnings = useMemo(() => {
-    const list: string[] = [];
+    const list: { kind: string; text: string }[] = [];
     const s = config.style;
     const risky = isRisky({
       dotStyle: s.dotStyle,
@@ -41,15 +43,26 @@ export default function Preview({ svg, scene, accent, payload, config, error }: 
       shapeScale: s.shapeScale,
       payloadLength: payload.value.length,
     });
-    if (risky) list.push(risky);
-    if (!s.bgTransparent && contrastRatio(s.color1, s.bgColor) < 3.2) list.push(t("warn.contrast"));
-    if (s.logo && s.ecc !== "Q" && s.ecc !== "H") list.push(t("warn.logoEcc"));
-    if (s.logo && s.logoRatio > 0.3) list.push(t("warn.logoBig"));
-    if (s.margin < 4) list.push(t("warn.margin"));
-    if (s.bgTransparent) list.push(t("warn.transparent"));
-    if (!payload.value.trim()) list.push(t("warn.empty"));
+    if (risky) list.push({ kind: "risky", text: risky });
+    if (!s.bgTransparent && contrastRatio(s.color1, s.bgColor) < 3.2)
+      list.push({ kind: "contrast", text: t("warn.contrast") });
+    if (s.logo && s.ecc !== "Q" && s.ecc !== "H")
+      list.push({ kind: "logo_ecc", text: t("warn.logoEcc") });
+    if (s.logo && s.logoRatio > 0.3) list.push({ kind: "logo_big", text: t("warn.logoBig") });
+    if (s.margin < 4) list.push({ kind: "margin", text: t("warn.margin") });
+    if (s.bgTransparent) list.push({ kind: "transparent", text: t("warn.transparent") });
+    if (!payload.value.trim()) list.push({ kind: "empty", text: t("warn.empty") });
     return list;
   }, [config.style, payload.value, lang]);
+
+  // какие предупреждения реально увидели: по одному разу на тип за сессию.
+  // «empty» не считаем — оно висит у всех до первого ввода и ничего не значит
+  useEffect(() => {
+    for (const w of warnings) {
+      if (w.kind === "empty") continue;
+      trackOnce(`warn:${w.kind}`, "warning_shown", { kind: w.kind });
+    }
+  }, [warnings]);
 
   // плашка нужна только когда кнопок под кодом не видно
   useEffect(() => {
@@ -107,8 +120,10 @@ export default function Preview({ svg, scene, accent, payload, config, error }: 
       setBusy("png");
       const blob = await svgToPngBlob(svg, config.style.size);
       downloadBlob(blob, `qr-${config.type}-${Date.now()}.png`);
+      track("export", { format: "png", action: "download" });
       flash(t("toast.pngSaved"));
     } catch {
+      track("export_error", { format: "png" });
       flash(t("toast.pngError"));
     } finally {
       setBusy(null);
@@ -120,8 +135,11 @@ export default function Preview({ svg, scene, accent, payload, config, error }: 
       setBusy("copy");
       const blob = await svgToPngBlob(svg, config.style.size);
       const ok = await copyPng(blob);
+      if (ok) track("export", { format: "png", action: "copy" });
+      else track("export_error", { format: "png" });
       flash(ok ? t("toast.pngCopied") : t("toast.copyBlocked"));
     } catch {
+      track("export_error", { format: "png" });
       flash(t("toast.pngCopyError"));
     } finally {
       setBusy(null);
@@ -157,6 +175,7 @@ export default function Preview({ svg, scene, accent, payload, config, error }: 
             aria-label={t("preview.downloadSvg")}
             onClick={() => {
             downloadSvg(svg, `qr-${config.type}-${Date.now()}.svg`);
+            track("export", { format: "svg", action: "download" });
             flash(t("toast.svgSaved"));
             }}
             disabled={!payload.value || !!error}
@@ -190,9 +209,12 @@ export default function Preview({ svg, scene, accent, payload, config, error }: 
             className="btn btn--ghost"
             title={t("preview.copySvg")}
             aria-label={t("preview.copySvg")}
-            onClick={async () =>
-            flash((await copyText(svg)) ? t("toast.svgCopied") : t("toast.copyError"))
-            }
+            onClick={async () => {
+            const ok = await copyText(svg);
+            if (ok) track("export", { format: "svg", action: "copy" });
+            else track("export_error", { format: "svg" });
+            flash(ok ? t("toast.svgCopied") : t("toast.copyError"));
+            }}
             disabled={!payload.value || !!error}
           >
             <span className="btn-label btn-label--short">SVG</span>
@@ -236,9 +258,11 @@ export default function Preview({ svg, scene, accent, payload, config, error }: 
         <button
           type="button"
           className="btn btn--tiny"
-          onClick={async () =>
-            flash((await copyText(payload.value)) ? t("toast.copied") : t("toast.copyError"))
-          }
+          onClick={async () => {
+            const ok = await copyText(payload.value);
+            if (ok) track("payload_copy", {});
+            flash(ok ? t("toast.copied") : t("toast.copyError"));
+          }}
         >
           {t("preview.copy")}
         </button>
@@ -282,7 +306,7 @@ export default function Preview({ svg, scene, accent, payload, config, error }: 
         {warnings.length > 0 && (
           <ul className="warnings">
             {warnings.map((w) => (
-              <li key={w}>{w}</li>
+              <li key={w.kind}>{w.text}</li>
             ))}
           </ul>
         )}

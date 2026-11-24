@@ -117,6 +117,20 @@ then run `npm run verify` to make sure the codes still decode.
 
 > Tip: ask the agent to run `npm run verify` after any change to styling or rendering. It renders real codes and decodes them with `jsqr`, which catches the “looks nice, scans badly” class of bug.
 
+## Analytics
+
+We count actions, never content. Only event names and service values leave the browser: content type, coin id, export format, language, payload size as a bucket. Addresses, links, texts, Wi-Fi passwords, e-mail, phones, the uploaded logo and the QR code itself never do. The guard in `src/lib/analytics.ts` drops an event entirely when a value does not look like a service identifier — user data is blocked, not stripped.
+
+The counter is [Umami](https://umami.is): cookieless, no personal data, no GDPR consent banner. It is MIT-licensed, so a self-hosted instance is one environment variable away.
+
+The site id is already in `src/lib/analytics.ts` (`DEFAULT_SITE_ID`). It is a public identifier — visible in the page source anyway — so a Vercel, Netlify or self-hosted build counts events without any variable setup.
+
+Override it with `VITE_UMAMI_SITE_ID` (see `.env.example`) for another site, a staging stand or a self-hosted Umami via `VITE_UMAMI_HOST`. The value `off` disables analytics entirely.
+
+Analytics is off in `npm run dev` so local runs stay out of the stats; `VITE_ANALYTICS_DEV=1` turns it on. `Do Not Track` and `Global Privacy Control` are respected.
+
+Events: `app_open`, `qr_ready`, `content_type`, `coin_select`, `palette_apply`, `logo_upload`, `caption_toggle`, `ecc_change`, `export`, `export_error`, `payload_copy`, `warning_shown`, `lang_switch`, `reset`.
+
 ## Deploy your own
 
 The build is fully static, so any static host works: Vercel, Netlify, Cloudflare Pages, GitHub Pages, an S3 bucket, nginx.

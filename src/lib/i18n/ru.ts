@@ -8,6 +8,7 @@ export const ru = {
   "app.captionHint": "Подпись: {label}",
   "app.footerPrivacy":
     "QR-коды строятся целиком в браузере — адреса, пароли и суммы никуда не отправляются.",
+  "app.footerAnalytics": "Аналитика посещений — без cookie и без содержимого кодов.",
   "app.footerFormats": "Экспорт PNG и SVG · поддержка BIP-21, ERC-681, Solana Pay и TON",
   "app.reset": "Сбросить",
 

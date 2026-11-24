@@ -7,6 +7,7 @@ export const es: Dict = {
   "app.captionHint": "Leyenda: {label}",
   "app.footerPrivacy":
     "Los códigos QR se generan por completo en el navegador: las direcciones, las contraseñas y los importes no se envían a ningún sitio.",
+  "app.footerAnalytics": "Analítica de visitas: sin cookies y sin el contenido de los códigos.",
   "app.footerFormats": "Exportación en PNG y SVG · compatibilidad con BIP-21, ERC-681, Solana Pay y TON",
   "app.reset": "Restablecer",
 
