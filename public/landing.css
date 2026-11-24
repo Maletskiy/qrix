@@ -544,6 +544,15 @@ code {
   }
 }
 
+/* В статье ровно три карточки — в две колонки третья висела бы одна,
+   поэтому на широком экране они идут в ряд. В списке гайдов их четыре,
+   там остаются две колонки. */
+@media (min-width: 1000px) {
+  .guides .guides__list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 .guides__list a {
   display: block;
   padding: 18px 20px;

@@ -329,9 +329,6 @@ ${faq}
         <h2 id="guides-title">${esc(chrome.guidesTitle)}</h2>
         <ul class="guides__list">
 ${guideCards(site, lang, bundles, index)}
-          <li><a href="${hub}"><strong>${esc(chrome.hubTitle)}</strong><span>${esc(
-    short(chrome.hubLede, 140)
-  )}</span></a></li>
         </ul>
       </section>
     </main>
