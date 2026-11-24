@@ -22,7 +22,7 @@ const OUT = "dist";
  */
 const LOGO =
   "data:image/svg+xml;base64," +
-  readFileSync(join("public", "qrix-logo.svg")).toString("base64");
+  readFileSync(join("public", "qrix-badge.svg")).toString("base64");
 
 function makeQr(value: string, index: number): string {
   // у страницы с логотипом — H и вырезанная область, как в самом генераторе
