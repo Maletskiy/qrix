@@ -141,7 +141,7 @@ npm run check:pages  # verify the generated output
 
 `check:pages` decodes the code on every page and compares it with the promised string, then checks canonical, all six `hreflang` entries, `title`/`description` lengths, `FAQPage` markup, and that cross-links resolve. It belongs in CI next to `verify` — one command, though the workflow has no such step yet.
 
-Page type is Medeo (OFL 1.1) from `public/fonts/medeo/`, styles in `public/landing.css`. The generator at `/` keeps its own CSS and Google Sans.
+Page type is the same Google Sans as the generator: the files in `public/fonts/` are shared, so the guides and the app read as one product. Styles live in `public/landing.css`.
 
 ## Analytics
 

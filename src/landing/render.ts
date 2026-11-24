@@ -100,7 +100,7 @@ function head(args: {
 ${alternates(urls)}
   <link rel="icon" type="image/svg+xml" href="/qrix-logo.svg">
   <link rel="stylesheet" href="/landing.css">
-  <link rel="preload" href="/fonts/medeo/MedeoSansVariable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/googlesans-latin.woff2" as="font" type="font/woff2" crossorigin>
 
   <meta property="og:type" content="${type}">
   <meta property="og:site_name" content="Qrix">
