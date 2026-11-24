@@ -192,24 +192,26 @@ export default function App() {
         <div className="footer__left">
           <span>{t("app.footerPrivacy")}</span>
           <span>{t("app.footerFormats")}</span>
-          {/* ссылка на статические гайды: единственный вход в них из приложения */}
-          <a className="footer__guides" href={`/${lang}/`}>
-            {t("app.footerGuides")}
-          </a>
           {/* раскрытие не прячется от DNT и GPC — только если счётчик выключен в конфиге */}
           {isAnalyticsConfigured() && <span>{t("app.footerAnalytics")}</span>}
         </div>
         <div className="footer__right">
-          Built by{" "}
-          <a
-            className="footer__author"
-            href="https://maletskiy-design.ru"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Maletskiy Design
-            <span className="line" aria-hidden="true" />
+          {/* ссылка на статические гайды: единственный вход в них из приложения */}
+          <a className="footer__guides" href={`/${lang}/`}>
+            {t("app.footerGuides")}
           </a>
+          <span className="footer__built">
+            Built by{" "}
+            <a
+              className="footer__author"
+              href="https://maletskiy-design.ru"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Maletskiy Design
+              <span className="line" aria-hidden="true" />
+            </a>
+          </span>
         </div>
       </footer>
       </div>
