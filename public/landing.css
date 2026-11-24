@@ -91,14 +91,41 @@ svg {
 
 a {
   color: var(--ink);
-  text-decoration-color: var(--line-strong);
-  text-underline-offset: 3px;
-  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
 
-a:hover {
-  color: var(--accent);
-  text-decoration-color: var(--accent);
+/* Линия выезжает из центра — тот же приём, что у ссылки автора в подвале
+   генератора. Подчёркивания нет, пока не навели. */
+.crumbs a,
+.footer a,
+.brand b,
+.guides__list a strong {
+  position: relative;
+  display: inline-block;
+}
+
+.crumbs a::after,
+.footer a::after,
+.brand b::after,
+.guides__list a strong::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 0;
+  height: 1px;
+  background: currentColor;
+  transition: left 0.35s ease, width 0.35s ease;
+  pointer-events: none;
+}
+
+.crumbs a:hover::after,
+.footer a:hover::after,
+.brand b:hover::after,
+.guides__list a:hover strong::after {
+  left: 0;
+  width: 100%;
 }
 
 :focus-visible {
@@ -260,8 +287,9 @@ code {
   text-decoration: none;
 }
 
+/* цвет не меняем: как у ссылки автора в подвале сервиса, работает только линия */
 .crumbs a:hover {
-  color: var(--accent);
+  color: var(--ink);
 }
 
 /* На узком экране оставляем только ссылку на генератор: точка и длинный
@@ -306,35 +334,46 @@ code {
   max-width: 56ch;
 }
 
+/* Кнопка повторяет сервисную: тот же радиус, цвета, ховер и сдвиг при
+   нажатии. Отступы крупнее — на странице-гайде кнопка стоит одна и должна
+   читаться рядом с заголовком в 48px. */
 .btn {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  padding: 0.8rem 1.3rem;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
   background: var(--accent);
   color: var(--accent-ink);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
   text-decoration: none;
-  font-weight: 600;
-  font-size: var(--text-base);
-  padding: 13px 22px;
-  border-radius: 999px;
-  transition: transform 0.2s ease, filter 0.2s ease;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
 
 .btn:hover {
+  background: #ddff4d;
+  border-color: #ddff4d;
   color: var(--accent-ink);
-  filter: brightness(1.06);
-  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(1px);
 }
 
 .btn--ghost {
   background: transparent;
+  border-color: var(--line-strong);
   color: var(--ink);
-  border: 1px solid var(--line-strong);
 }
 
 .btn--ghost:hover {
+  background: #1d2024;
+  border-color: #43464b;
   color: var(--ink);
-  border-color: var(--muted);
 }
 
 /* --- карточка с кодом --- */
