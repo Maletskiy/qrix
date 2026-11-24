@@ -117,6 +117,30 @@ then run `npm run verify` to make sure the codes still decode.
 
 > Tip: ask the agent to run `npm run verify` after any change to styling or rendering. It renders real codes and decodes them with `jsqr`, which catches the “looks nice, scans badly” class of bug.
 
+## Search landing pages
+
+Beyond the generator, the build emits static guides for long-tail search: four topics across five languages, 20 URLs of the form `https://qr-ix.com/<lang>/<slug>/`.
+
+| Topic | Covers | Button leads to |
+|---|---|---|
+| Wi-Fi | the `WIFI:` format, escaping separators, guest networks | `/?type=wifi` |
+| Logo | cutting modules out instead of overlaying, error correction, size | `/` |
+| Bitcoin | BIP-21, amount precision, other chains | `/?type=crypto&coin=btc` |
+| SVG | a single vector path, print requirements, CMYK | `/` |
+
+These are not React: `scripts/build-pages.ts` turns the data in `src/landing/pages/<lang>.ts` into ready HTML at build time. Crawlers see the copy immediately and the browser does not download a 440 KB app to read an article. The QR on every page is real — rendered by the same `renderSvg` as the generator, logo cut-out included.
+
+Adding a topic means adding one object per language file at the same position: the count and order must match across languages. The build then produces URLs, `hreflang`, `sitemap.xml` and `robots.txt` by itself.
+
+```bash
+npm run build        # vite build + page generation
+npm run check:pages  # verify the generated output
+```
+
+`check:pages` decodes the code on every page and compares it with the promised string, then checks canonical, all six `hreflang` entries, `title`/`description` lengths, `FAQPage` markup, and that cross-links resolve. It belongs in CI next to `verify` — one command, though the workflow has no such step yet.
+
+Page type is Medeo (OFL 1.1) from `public/fonts/medeo/`, styles in `public/landing.css`. The generator at `/` keeps its own CSS and Google Sans.
+
 ## Analytics
 
 We count actions, never content. Only event names and service values leave the browser: content type, coin id, export format, language, payload size as a bucket. Addresses, links, texts, Wi-Fi passwords, e-mail, phones, the uploaded logo and the QR code itself never do. The guard in `src/lib/analytics.ts` drops an event entirely when a value does not look like a service identifier — user data is blocked, not stripped.

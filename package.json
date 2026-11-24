@@ -5,10 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && npm run build:pages",
     "preview": "vite preview",
     "verify": "esbuild scripts/verify.ts --bundle --platform=node --format=esm --outfile=scripts/verify.mjs --external:@resvg/resvg-js --external:jsqr --external:pngjs --log-level=error && node scripts/verify.mjs",
-    "deploy": "env -u npm_config_cache npx --yes vercel --global-config ./.vercel-cli --prod --yes"
+    "deploy": "env -u npm_config_cache npx --yes vercel --global-config ./.vercel-cli --prod --yes",
+    "build:pages": "esbuild scripts/build-pages.ts --bundle --platform=node --format=esm --outfile=scripts/build-pages.mjs --log-level=error && node scripts/build-pages.mjs",
+    "check:pages": "esbuild scripts/check-pages.ts --bundle --platform=node --format=esm --outfile=scripts/check-pages.mjs --external:@resvg/resvg-js --external:jsqr --external:pngjs --log-level=error && node scripts/check-pages.mjs"
   },
   "dependencies": {
     "motion": "^14.3.0",

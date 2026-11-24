@@ -4,7 +4,7 @@ dist
 samples
 *.local
 .DS_Store
-scripts/verify.mjs
+scripts/*.mjs
 .vercel
 .vercel-cli
 .env*
