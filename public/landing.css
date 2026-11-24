@@ -96,19 +96,18 @@ a {
 }
 
 /* Линия выезжает из центра — тот же приём, что у ссылки автора в подвале
-   генератора. Подчёркивания нет, пока не навели. */
+   генератора. Подчёркивания нет, пока не навели. У карточек гайдов линии
+   нет намеренно: там наведение показывает рамка и фон блока. */
 .crumbs a,
 .footer a,
-.brand b,
-.guides__list strong span {
+.brand b {
   position: relative;
   display: inline-block;
 }
 
 .crumbs a::after,
 .footer a::after,
-.brand b::after,
-.guides__list strong span::after {
+.brand b::after {
   content: "";
   position: absolute;
   top: 100%;
@@ -122,8 +121,7 @@ a {
 
 .crumbs a:hover::after,
 .footer a:hover::after,
-.brand b:hover::after,
-.guides__list a:hover strong span::after {
+.brand b:hover::after {
   left: 0;
   width: 100%;
 }
