@@ -2240,6 +2240,15 @@ select.input {
   white-space: nowrap;
 }
 
+/* На телефоне ссылка и автор идут друг под другом, как строки левой колонки */
+@media (max-width: 700px) {
+  .footer__right {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+  }
+}
+
 .footer__guides {
   color: var(--muted);
   text-decoration: underline;
