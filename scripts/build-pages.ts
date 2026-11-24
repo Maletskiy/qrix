@@ -9,6 +9,7 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { BUNDLES, LANGS, PAGE_COUNT, SITE } from "../src/landing";
 import { renderHub, renderPage } from "../src/landing/render";
+import { coverPng } from "./lib/cover";
 import { encodeMatrix } from "../src/lib/qr";
 import { renderSvg } from "../src/lib/render";
 import type { RenderOptions } from "../src/lib/render";
@@ -100,7 +101,7 @@ function sitemap(): string {
   );
 }
 
-function main(): void {
+async function main(): Promise<void> {
   let written = 0;
 
   // списки гайдов: /<lang>/
@@ -120,6 +121,19 @@ function main(): void {
         qrSvg: makeQr(page.demo.value, index),
       });
       write(join(lang, page.slug, "index.html"), html);
+
+      // обложка: og:image и картинка в карточках списка
+      const cover = await coverPng({
+        title: page.title,
+        eyebrow: "Qrix · guide",
+        qrSvg: makeQr(page.demo.value, index),
+        footnote: "qr-ix.com",
+      });
+      const coverFile = join("covers", `${lang}-${page.slug}.png`);
+      const coverPath = join(OUT, coverFile);
+      mkdirSync(dirname(coverPath), { recursive: true });
+      writeFileSync(coverPath, cover);
+
       written++;
     }
   }
@@ -134,4 +148,7 @@ function main(): void {
   console.log(`sitemap.xml и robots.txt обновлены`);
 }
 
-main();
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

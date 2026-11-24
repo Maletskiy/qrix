@@ -60,6 +60,11 @@ function pageUrl(
   return `${site}/${lang}/${bundles[lang].pages[index].slug}/`;
 }
 
+/** Обложка гайда: относительный путь для <img>, абсолютный — для og:image. */
+function coverPath(lang: Lang, slug: string): string {
+  return `/covers/${lang}-${slug}.png`;
+}
+
 function hubUrl(site: string, lang: Lang): string {
   return `${site}/${lang}/`;
 }
@@ -88,8 +93,9 @@ function head(args: {
   urls: Record<Lang, string>;
   jsonLd: unknown;
   type: "article" | "website";
+  image: string;
 }): string {
-  const { lang, title, description, canonical, urls, jsonLd, type } = args;
+  const { lang, title, description, canonical, urls, jsonLd, type, image } = args;
   return `<meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark">
@@ -108,11 +114,11 @@ ${alternates(urls)}
   <meta property="og:locale" content="${OG_LOCALE[lang]}">
   <meta property="og:title" content="${esc(title)}">
   <meta property="og:description" content="${esc(description)}">
-  <meta property="og:image" content="https://qr-ix.com/og.png">
+  <meta property="og:image" content="${image}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${esc(title)}">
   <meta name="twitter:description" content="${esc(description)}">
-  <meta name="twitter:image" content="https://qr-ix.com/og.png">
+  <meta name="twitter:image" content="${image}">
 
   <script type="application/ld+json">${ld(jsonLd)}</script>`;
 }
@@ -141,7 +147,10 @@ function bar(args: {
         <b>Qrix</b>
         <span>${esc(chrome.tagline)}</span>
       </a>
-      <nav class="langs" aria-label="${esc(chrome.langSwitchLabel)}">
+      <nav class="langs" aria-label="${esc(chrome.langSwitchLabel)}" style="--active: ${
+        ORDER.indexOf(lang)
+      }">
+        <span class="langs__thumb" aria-hidden="true"></span>
 ${links}
       </nav>
     </div>
@@ -162,7 +171,7 @@ function crumbs(
     : "";
   return `<nav class="crumbs" aria-label="Breadcrumb">
       <a href="/">${esc(chrome.breadcrumbHome)}</a>${hubItem}
-      <span class="crumbs__sep" aria-hidden="true">·</span>
+      <span class="crumbs__sep crumbs__sep--tail" aria-hidden="true">·</span>
       <span class="crumbs__current">${esc(current)}</span>
     </nav>`;
 }
@@ -185,9 +194,12 @@ function guideCards(
     .filter(({ index }) => index !== skipIndex)
     .map(
       ({ page, index }) =>
-        `          <li><a href="${pageUrl(site, bundles, lang, index)}"><strong>${esc(
+        `          <li><a href="${pageUrl(site, bundles, lang, index)}"><img src="${coverPath(
+          lang,
+          page.slug
+        )}" alt="" width="1200" height="630" loading="lazy" decoding="async"><strong><span>${esc(
           page.title
-        )}</strong><span>${esc(short(page.lede, 160))}</span></a></li>`
+        )}</span></strong><span class="guides__note">${esc(short(page.lede, 160))}</span></a></li>`
     )
     .join("\n");
 }
@@ -263,6 +275,7 @@ ${section.paragraphs.map((text) => `          <p>${esc(text)}</p>`).join("\n")}
     urls,
     jsonLd,
     type: "article",
+    image: `${site}${coverPath(lang, page.slug)}`,
   })}
 </head>
 <body>
@@ -375,6 +388,7 @@ export function renderHub(args: {
     urls,
     jsonLd,
     type: "website",
+    image: `${site}/og.png`,
   })}
 </head>
 <body>

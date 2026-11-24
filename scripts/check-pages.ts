@@ -9,7 +9,7 @@
  *
  * Запуск: npm run check:pages (после сборки).
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Resvg } from "@resvg/resvg-js";
 import jsQR from "jsqr";
@@ -147,6 +147,19 @@ function main(): void {
         "строка под кодом не совпадает с содержимым кода"
       );
 
+      // --- обложка: файл на месте и указан в og:image ---
+      const cover = `/covers/${lang}-${page.slug}.png`;
+      ok(existsSync(join(OUT, cover)), where, `нет обложки ${cover}`);
+      const ogImage = attr(html, /<meta property="og:image" content="([^"]+)"/);
+      ok(ogImage === `${SITE}${cover}`, where, `og:image: ${ogImage ?? "нет"}`);
+
+      // --- карточки других гайдов: у каждой есть картинка ---
+      const cardImgs = [...html.matchAll(/<li><a href="[^"]+"><img src="([^"]+)"/g)].map((m) => m[1]);
+      ok(cardImgs.length >= 1, where, "в карточках нет превью");
+      for (const src of cardImgs) {
+        ok(existsSync(join(OUT, src)), where, `нет файла превью ${src}`);
+      }
+
       // --- внутренние ссылки не должны вести в пустоту ---
       for (const href of guideLinks(html)) {
         const [, code, slug] = href.replace(SITE, "").split("/");
@@ -182,6 +195,12 @@ function main(): void {
     const hreflangs = [...html.matchAll(/hreflang="([a-z-]+)" href="/g)].map((m) => m[1]);
     for (const code of [...LANGS, "x-default"]) {
       ok(hreflangs.includes(code), where, `нет hreflang ${code}`);
+    }
+
+    const hubImgs = [...html.matchAll(/<li><a href="[^"]+"><img src="([^"]+)"/g)].map((m) => m[1]);
+    ok(hubImgs.length === PAGE_COUNT, where, `превью в списке: ${hubImgs.length}`);
+    for (const src of hubImgs) {
+      ok(existsSync(join(OUT, src)), where, `нет файла превью ${src}`);
     }
 
     const links = guideLinks(html);

@@ -100,7 +100,7 @@ a {
 .crumbs a,
 .footer a,
 .brand b,
-.guides__list a strong {
+.guides__list strong span {
   position: relative;
   display: inline-block;
 }
@@ -108,7 +108,7 @@ a {
 .crumbs a::after,
 .footer a::after,
 .brand b::after,
-.guides__list a strong::after {
+.guides__list strong span::after {
   content: "";
   position: absolute;
   top: 100%;
@@ -123,7 +123,7 @@ a {
 .crumbs a:hover::after,
 .footer a:hover::after,
 .brand b:hover::after,
-.guides__list a:hover strong::after {
+.guides__list a:hover strong span::after {
   left: 0;
   width: 100%;
 }
@@ -242,32 +242,58 @@ code {
   }
 }
 
+/* Переключатель как в генераторе: подложка активного языка лежит под
+   пунктами и переезжает. Ширина пункта фиксированная, поэтому подложку
+   можно сдвигать одной переменной --active без замера в JS. */
 .langs {
-  display: flex;
-  gap: 2px;
+  --item-w: 2.65rem;
+  position: relative;
+  display: inline-flex;
   align-items: center;
+  gap: 2px;
+  height: 36px;
+  padding: 3px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 0.625rem;
+}
+
+.langs__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: var(--item-w);
+  height: calc(100% - 6px);
+  border-radius: 0.45rem;
+  background: var(--accent);
+  pointer-events: none;
+  transform: translateX(calc(var(--active, 0) * (var(--item-w) + 2px)));
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .langs a {
-  display: inline-block;
-  padding: 6px 9px;
-  border-radius: 8px;
-  font-size: var(--text-xs);
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--item-w);
+  height: 100%;
+  border-radius: 0.4375rem;
   color: var(--dim);
-  text-decoration: none;
-  letter-spacing: 0.04em;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  transition: color 0.14s ease;
 }
 
 .langs a:hover {
   color: var(--ink);
-  background: var(--panel-2);
 }
 
 .langs a[aria-current="page"] {
   color: var(--accent-ink);
-  background: var(--accent);
-  font-weight: 600;
 }
 
 /* --- шапка страницы --- */
@@ -292,15 +318,15 @@ code {
   color: var(--ink);
 }
 
-/* На узком экране оставляем только ссылку на генератор: точка и длинный
-   заголовок переносятся и висят в конце строки. */
-.crumbs__sep,
+/* На узком экране прячем только хвост крошек — точку перед текущей
+   страницей и длинный заголовок. Разделители между ссылками остаются. */
+.crumbs__sep--tail,
 .crumbs__current {
   display: none;
 }
 
 @media (min-width: 720px) {
-  .crumbs__sep,
+  .crumbs__sep--tail,
   .crumbs__current {
     display: inline;
   }
@@ -535,16 +561,29 @@ code {
   background: var(--panel-2);
 }
 
+.guides__list img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1200 / 630;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  background: var(--panel-2);
+}
+
 .guides__list strong {
   display: block;
   font-weight: 600;
   font-size: var(--text-base);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
-.guides__list span {
+.guides__list .guides__note {
+  display: block;
   color: var(--dim);
   font-size: var(--text-sm);
+  line-height: 1.5;
 }
 
 /* --- подвал --- */
