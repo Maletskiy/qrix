@@ -187,6 +187,16 @@ function hash(x: number, y: number, salt = 0): number {
   return n - Math.floor(n);
 }
 
+/**
+ * Сид из самого слова: у каждой темы своё поле. Без него шум зависел только
+ * от координат, а сетка у всех слов одна — обложки выходили одинаковыми.
+ */
+function seedFrom(text: string): number {
+  let h = 0;
+  for (let i = 0; i < text.length; i++) h = (h * 31 + text.charCodeAt(i)) % 100000;
+  return h / 97;
+}
+
 function mix(a: number[], b: number[], t: number): string {
   const k = Math.max(0, Math.min(1, t));
   const c = a.map((v, i) => Math.round(v + (b[i] - v) * k));
@@ -222,19 +232,22 @@ export async function coverSvg(text: string): Promise<string> {
   const mask = wordMask(font, text);
   fixDots(mask);
 
+  // смещение для шума: своё у каждого слова
+  const seed = seedFrom(text);
+
   const background: string[] = [];
   const word: string[] = [];
 
   // фон: модули в узлах сетки со случайным сдвигом и случаным оттенком
   for (let y = -MODULE; y < H + MODULE; y += MODULE + BG_GAP) {
     for (let x = -MODULE; x < W + MODULE; x += MODULE + BG_GAP) {
-      if (hash(x, y, 3) < 0.12) continue;
+      if (hash(x, y, 3 + seed) < 0.12) continue;
 
-      const px = x + (hash(x, y, 1) - 0.5) * 6;
-      const py = y + (hash(x, y, 2) - 0.5) * 6;
+      const px = x + (hash(x, y, 1 + seed) - 0.5) * 6;
+      const py = y + (hash(x, y, 2 + seed) - 0.5) * 6;
 
       // 90% модулей тусклые, 10% ярких
-      const roll = hash(x, y, 4);
+      const roll = hash(x, y, 4 + seed);
       const base = roll < 0.9 ? 0.03 + roll * 0.16 : 0.62 + (roll - 0.9) * 3.6;
 
       // рядом со словом гасим: белое должно читаться максимально контрастно
