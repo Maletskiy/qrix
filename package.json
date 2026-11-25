@@ -14,7 +14,7 @@
     "build:covers": "esbuild scripts/build-covers.ts --bundle --platform=node --format=esm --outfile=scripts/build-covers.mjs --external:@resvg/resvg-js --external:wawoff2 --external:opentype.js --external:pngjs --log-level=error && node scripts/build-covers.mjs",
     "dev:api": "esbuild scripts/dev-api.ts --bundle --platform=node --format=esm --outfile=scripts/dev-api.mjs --log-level=error && node scripts/dev-api.mjs",
     "check:dynamic": "esbuild scripts/check-dynamic.ts --bundle --platform=node --format=esm --outfile=scripts/check-dynamic.mjs --log-level=error && node scripts/check-dynamic.mjs",
-    "build:api": "esbuild scripts/api-entry.ts --bundle --platform=node --format=esm --target=node20 --outfile=\"api/[...path].js\" --log-level=error"
+    "build:api": "esbuild scripts/api-entry.ts --bundle --platform=node --format=esm --target=node20 --outfile=\"api/[[...path]].js\" --log-level=error"
   },
   "dependencies": {
     "motion": "^14.3.0",
