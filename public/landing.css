@@ -51,7 +51,7 @@
   --text-base: 20px;
   /* выше базового кегля шкала сдвинута на те же два шага: иначе абзацы
      статьи (они на --text-lg) оказались бы мельче основного текста */
-  --text-lg: 22px;
+  --text-lg: 20px;
   --text-xl: 26px;
   --text-2xl: 32px;
   --text-3xl: 40px;
@@ -147,6 +147,7 @@ h3 {
 h1 {
   font-size: clamp(30px, 4.6vw, var(--text-4xl));
   letter-spacing: -0.02em;
+  line-height: 1;
 }
 
 h2 {
@@ -342,7 +343,7 @@ code {
     "intro aside"
     "body  aside";
   column-gap: 56px;
-  row-gap: 24px;
+  row-gap: 48px;
   align-items: start;
   padding: 28px 0 0;
 }
@@ -364,7 +365,9 @@ code {
   gap: 12px;
 }
 
-.layout__body {
+/* статья занимает нижнюю строку первой колонки: липкая колонка тянется
+   ровно до конца текста и отпускает на «Коротко о главном» */
+.layout > .prose {
   grid-area: body;
 }
 
@@ -451,7 +454,7 @@ code {
 .prose {
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 48px;
   padding: 8px 0 12px;
   max-width: 68ch;
 }

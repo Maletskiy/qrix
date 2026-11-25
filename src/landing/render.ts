@@ -319,26 +319,24 @@ ${section.paragraphs.map((text) => `          <p>${esc(text)}</p>`).join("\n")}
           </div>
         </aside>
 
-        <div class="layout__body">
-          <article class="prose">
+        <article class="prose">
 ${sections}
-          </article>
-
-          <section class="faq" aria-labelledby="faq-title">
-            <h2 id="faq-title">${esc(chrome.faqTitle)}</h2>
-            <div class="faq__grid">
-${faq}
-            </div>
-          </section>
-
-          <section class="guides" aria-labelledby="guides-title">
-            <h2 id="guides-title">${esc(chrome.guidesTitle)}</h2>
-            <ul class="guides__list">
-${guideCards(site, lang, bundles, index)}
-            </ul>
-          </section>
-        </div>
+        </article>
       </div>
+
+      <section class="faq" aria-labelledby="faq-title">
+        <h2 id="faq-title">${esc(chrome.faqTitle)}</h2>
+        <div class="faq__grid">
+${faq}
+        </div>
+      </section>
+
+      <section class="guides" aria-labelledby="guides-title">
+        <h2 id="guides-title">${esc(chrome.guidesTitle)}</h2>
+        <ul class="guides__list">
+${guideCards(site, lang, bundles, index)}
+        </ul>
+      </section>
     </main>
 
     ${footer(chrome)}
