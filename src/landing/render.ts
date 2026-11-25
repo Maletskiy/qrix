@@ -116,6 +116,7 @@ function head(args: {
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(description)}">
   <link rel="canonical" href="${canonical}">
+  <meta name="yandex-verification" content="6ff8b0fa8605e8c5">
 ${alternates(urls)}
   <link rel="icon" type="image/svg+xml" href="/qrix-logo.svg">
   <link rel="stylesheet" href="/landing.css">
