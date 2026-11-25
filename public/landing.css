@@ -48,7 +48,7 @@
 
   --text-xs: 14px;
   --text-sm: 16px;
-  --text-base: 20px;
+  --text-base: 18px;
   /* выше базового кегля шкала сдвинута на те же два шага: иначе абзацы
      статьи (они на --text-lg) оказались бы мельче основного текста */
   --text-lg: 20px;
@@ -152,10 +152,12 @@ h1 {
 
 h2 {
   font-size: clamp(24px, 3vw, var(--text-3xl));
+  line-height: 1.2;
 }
 
 h3 {
   font-size: var(--text-xl);
+  line-height: 1.3;
 }
 
 p {
