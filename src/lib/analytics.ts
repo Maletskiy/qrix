@@ -49,6 +49,14 @@ export type EventMap = {
   lang_switch: { lang: string };
   /** Сброс настроек. */
   reset: Record<string, never>;
+  /** Создан динамический код: свой адрес или случайный. */
+  dyn_create: { custom_slug: boolean };
+  /** Создание отклонено лимитом бесплатных кодов. */
+  dyn_limit: Record<string, never>;
+  /** Смена адреса у динамического кода. */
+  dyn_edit: Record<string, never>;
+  /** Короткий адрес отправлен в генератор на стилизацию. */
+  dyn_use: Record<string, never>;
 };
 
 export type EventName = keyof EventMap;

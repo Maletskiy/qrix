@@ -18,7 +18,7 @@ const file = process.env.QR_DB_FILE || ".qrix/dynamic.json";
 const handler = createHandler({
   ...process.env,
   QR_DB_FILE: file,
-  QR_BASE_URL: process.env.QR_BASE_URL || `http://127.0.0.1:${port}`,
+  QR_BASE_URL: process.env.QR_BASE_URL,
   QR_IP_SALT: process.env.QR_IP_SALT || "qrix-dev-salt",
   QR_LICENSE_SECRET: process.env.QR_LICENSE_SECRET || "qrix-dev-license",
 });

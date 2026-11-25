@@ -26,8 +26,13 @@ export function buildPayload(config: QrConfig): Payload {
     }
     case "link": {
       const value = config.link.trim();
+      // localhost — настоящий адрес, но точки в нём нет: без этого правила
+      // короткая ссылка динамического кода в разработке считалась бы пустой
+      const local = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?(\/|$)/i.test(value);
       const complete =
-        /^https?:\/\/[^\s/]+\.[^\s]+/i.test(value) || /^[^\s/]+\.[a-z]{2,}(\/|$)/i.test(value);
+        local ||
+        /^https?:\/\/[^\s/]+\.[^\s]+/i.test(value) ||
+        /^[^\s/]+\.[a-z]{2,}(\/|$)/i.test(value);
       return {
         value: complete ? value : "",
         scheme: "link",

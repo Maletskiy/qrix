@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ContentPanel from "./components/ContentPanel";
 import StylePanel from "./components/StylePanel";
 import LogoPanel from "./components/LogoPanel";
+import DynamicPanel from "./components/DynamicPanel";
 import Preview from "./components/Preview";
 import { defaultConfig, configFromQuery } from "./lib/config";
 import type { QrConfig } from "./lib/config";
@@ -181,6 +182,9 @@ export default function App() {
         <div className="layout__controls">
           <ContentPanel config={config} onChange={onChange} />
           <LogoPanel config={config} onChange={onChange} />
+          <DynamicPanel
+            onUseLink={(url) => onChange({ type: "link", link: url })}
+          />
           <StylePanel config={config} onChange={onChange} />
         </div>
         <aside className="layout__preview">

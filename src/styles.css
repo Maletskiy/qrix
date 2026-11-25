@@ -2293,3 +2293,375 @@ select.input {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ---------- динамические QR ---------- */
+
+.dyn-form__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: -0.6rem;
+}
+
+/* текстовая ссылка-переключатель: подчёркивание «растёт» от центра */
+.dyn-link {
+  position: relative;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--dim);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dyn-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.15em;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dyn-link:hover,
+.dyn-link[aria-expanded="true"] {
+  color: var(--ink);
+}
+
+.dyn-link:hover::after,
+.dyn-link[aria-expanded="true"]::after {
+  transform: scaleX(1);
+}
+
+.dyn-free {
+  font-size: 0.78rem;
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.dyn-prefix {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dyn-prefix__host {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  color: var(--dim);
+}
+
+.dyn-create {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+/* свёрнутый блок своего адреса: компенсируем зазор стека, иначе пустота */
+.dyn-slug {
+  margin-block: 0;
+  transition: margin-block 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dyn-slug:not(.is-open) {
+  margin-block: -0.75rem;
+}
+
+/* выключенная основная кнопка не должна выглядеть как грязная заливка */
+.btn--primary:disabled {
+  background: transparent;
+  border-color: var(--line-strong);
+  color: var(--dim);
+  opacity: 1;
+}
+
+.dyn-limit {
+  font-size: 0.78rem;
+  color: var(--cream);
+}
+
+.dyn-error {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--bad);
+}
+
+.dyn-empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--dim);
+}
+
+.dyn-note {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--dim);
+}
+
+.dyn-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.dyn-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.9rem;
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  transition: border-color 0.25s ease, opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: dyn-card-in 0.34s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes dyn-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.4rem) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.dyn-card:hover {
+  border-color: var(--line-strong);
+}
+
+/* удаление: карточка уезжает и только потом исчезает из списка */
+.dyn-card.is-leaving {
+  opacity: 0;
+  transform: translateY(-0.35rem) scale(0.985);
+  pointer-events: none;
+}
+
+.dyn-card.is-paused {
+  opacity: 0.72;
+}
+
+.dyn-card__qr {
+  width: 4.6rem;
+  height: 4.6rem;
+  border-radius: 0.55rem;
+  overflow: hidden;
+  background: #fff;
+}
+
+.dyn-card__qr svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.dyn-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.dyn-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.dyn-card__short {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dyn-card__scans {
+  font-size: 0.76rem;
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.dyn-card__target {
+  display: flex;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.dyn-card__target-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.8rem;
+}
+
+.dyn-card__save {
+  flex: none;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.76rem;
+}
+
+.dyn-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.74rem;
+  color: var(--dim);
+  flex-wrap: wrap;
+}
+
+.dyn-card__dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.dyn-card__badge {
+  color: var(--cream);
+}
+
+.dyn-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.dyn-card__actions .btn {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.74rem;
+  text-decoration: none;
+}
+
+.dyn-muted {
+  color: var(--dim);
+}
+
+.dyn-danger {
+  color: var(--bad);
+  border-color: rgba(255, 107, 107, 0.4);
+}
+
+.dyn-danger:hover:not(:disabled) {
+  background: rgba(255, 107, 107, 0.12);
+  border-color: var(--bad);
+}
+
+.dyn-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.74rem;
+  color: var(--cream);
+  animation: dyn-card-in 0.24s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* ---------- статистика ---------- */
+
+.dyn-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--line);
+}
+
+.dyn-stats__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.74rem;
+  color: var(--dim);
+}
+
+.dyn-stats__total {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.dyn-stats__empty {
+  font-size: 0.78rem;
+  color: var(--dim);
+}
+
+.dyn-spark {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 2.4rem;
+  padding-bottom: 1px;
+  border-bottom: 1px solid var(--line);
+}
+
+.dyn-spark__bar {
+  flex: 1 1 auto;
+  border-radius: 2px 2px 1px 1px;
+  background: var(--accent);
+  opacity: 0.85;
+  transition: height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dyn-spark__bar.is-empty {
+  background: var(--line);
+  opacity: 1;
+  min-height: 4px;
+}
+
+.dyn-stats__legend {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  font-size: 0.72rem;
+  color: var(--dim);
+}
+
+@media (max-width: 700px) {
+  .dyn-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dyn-card__qr {
+    width: 3.6rem;
+    height: 3.6rem;
+    order: -1;
+  }
+
+  .dyn-card__target {
+    flex-wrap: wrap;
+  }
+
+  .dyn-card__save {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dyn-card,
+  .dyn-confirm {
+    animation: none;
+  }
+
+  .dyn-card,
+  .dyn-link::after,
+  .dyn-spark__bar {
+    transition: none;
+  }
+}

@@ -91,7 +91,9 @@ function visitorId(ip: string, salt: string, now = Date.now()): string {
 function baseUrlOf(req: IncomingMessage, env: Env): string {
   if (env.QR_BASE_URL) return env.QR_BASE_URL.replace(/\/+$/, "");
   const host = header(req, "x-forwarded-host") || header(req, "host") || "qr-ix.com";
-  const proto = header(req, "x-forwarded-proto") || "https";
+  // локально схема http: иначе ссылка в разработке получится нерабочей
+  const local = /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(host);
+  const proto = header(req, "x-forwarded-proto") || (local ? "http" : "https");
   return `${proto}://${host}`;
 }
 

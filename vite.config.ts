@@ -10,8 +10,10 @@ export default defineConfig({
   server: {
     // в браузере адреса те же, что на проде: /api/... и /d/<slug>
     proxy: {
-      "/api": { target: API_TARGET, changeOrigin: true },
-      "/d/": { target: API_TARGET, changeOrigin: true },
+      // changeOrigin выключен намеренно: сервер собирает короткий адрес
+      // из заголовка Host, и в разработке он должен быть адресом страницы
+      "/api": { target: API_TARGET, changeOrigin: false },
+      "/d/": { target: API_TARGET, changeOrigin: false },
     },
   },
 });
