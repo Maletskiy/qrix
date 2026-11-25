@@ -15,6 +15,7 @@ import { Resvg } from "@resvg/resvg-js";
 import jsQR from "jsqr";
 import { PNG } from "pngjs";
 import { BUNDLES, LANGS, PAGE_COUNT, SITE } from "../src/landing";
+import { COVER_KINDS } from "../src/landing/types";
 import type { Lang } from "../src/landing/types";
 
 const OUT = "dist";
@@ -148,9 +149,9 @@ function main(): void {
       );
 
       // --- обложка: файл на месте и указан в og:image ---
-      const cover = `/covers/${lang}-${page.slug}.png`;
+      const cover = `/covers/${COVER_KINDS[index]}.png`;
       ok(existsSync(join(OUT, cover)), where, `нет обложки ${cover}`);
-      const thumb = `/covers/${lang}-${page.slug}-sm.png`;
+      const thumb = `/covers/${COVER_KINDS[index]}-sm.png`;
       ok(existsSync(join(OUT, thumb)), where, `нет компактной обложки ${thumb}`);
       const ogImage = attr(html, /<meta property="og:image" content="([^"]+)"/);
       ok(ogImage === `${SITE}${cover}`, where, `og:image: ${ogImage ?? "нет"}`);
