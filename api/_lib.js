@@ -11,6 +11,216 @@ var SLUG_LENGTH = 7;
 var SLUG_ALPHABET = "23456789abcdefghjkmnpqrstuvwxyz";
 var MAX_URL_LENGTH = 2048;
 
+// node_modules/@upstash/redis/chunk-HJPPKKDO.mjs
+var __defProp = Object.defineProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var error_exports = {};
+__export(error_exports, {
+  UpstashError: () => UpstashError,
+  UpstashJSONParseError: () => UpstashJSONParseError,
+  UrlError: () => UrlError
+});
+var UpstashError = class extends Error {
+  constructor(message, options) {
+    super(message, options);
+    this.name = "UpstashError";
+  }
+};
+var UrlError = class extends Error {
+  constructor(url) {
+    super(
+      `Upstash Redis client was passed an invalid URL. You should pass a URL starting with https. Received: "${url}". `
+    );
+    this.name = "UrlError";
+  }
+};
+var UpstashJSONParseError = class extends UpstashError {
+  constructor(body, options) {
+    const truncatedBody = body.length > 200 ? body.slice(0, 200) + "..." : body;
+    super(`Unable to parse response body: ${truncatedBody}`, options);
+    this.name = "UpstashJSONParseError";
+  }
+};
+var MAX_BUFFER_SIZE = 1024 * 1024;
+
+// node_modules/@upstash/redis/nodejs.mjs
+var BUILD = /* @__PURE__ */ Symbol("build");
+var TextFieldBuilder = class _TextFieldBuilder {
+  _noTokenize;
+  _noStem;
+  _from;
+  constructor(noTokenize = { noTokenize: false }, noStem = { noStem: false }, from = { from: null }) {
+    this._noTokenize = noTokenize;
+    this._noStem = noStem;
+    this._from = from;
+  }
+  noTokenize() {
+    return new _TextFieldBuilder({ noTokenize: true }, this._noStem, this._from);
+  }
+  noStem() {
+    return new _TextFieldBuilder(this._noTokenize, { noStem: true }, this._from);
+  }
+  from(field) {
+    return new _TextFieldBuilder(this._noTokenize, this._noStem, { from: field });
+  }
+  [BUILD]() {
+    return {
+      type: "TEXT",
+      ...this._noTokenize.noTokenize ? { noTokenize: true } : {},
+      ...this._noStem.noStem ? { noStem: true } : {},
+      ...this._from.from ? { from: this._from.from } : {}
+    };
+  }
+};
+var NumericFieldBuilder = class _NumericFieldBuilder {
+  type;
+  _from;
+  constructor(type, from = { from: null }) {
+    this.type = type;
+    this._from = from;
+  }
+  from(field) {
+    return new _NumericFieldBuilder(this.type, { from: field });
+  }
+  [BUILD]() {
+    return this._from.from ? {
+      type: this.type,
+      fast: true,
+      from: this._from.from
+    } : {
+      type: this.type,
+      fast: true
+    };
+  }
+};
+var BoolFieldBuilder = class _BoolFieldBuilder {
+  _fast;
+  _from;
+  constructor(fast = { fast: false }, from = { from: null }) {
+    this._fast = fast;
+    this._from = from;
+  }
+  fast() {
+    return new _BoolFieldBuilder({ fast: true }, this._from);
+  }
+  from(field) {
+    return new _BoolFieldBuilder(this._fast, { from: field });
+  }
+  [BUILD]() {
+    const hasFast = this._fast.fast;
+    const hasFrom = Boolean(this._from.from);
+    if (hasFast && hasFrom) {
+      return {
+        type: "BOOL",
+        fast: true,
+        from: this._from.from
+      };
+    }
+    if (hasFast) {
+      return {
+        type: "BOOL",
+        fast: true
+      };
+    }
+    if (hasFrom) {
+      return {
+        type: "BOOL",
+        from: this._from.from
+      };
+    }
+    return { type: "BOOL" };
+  }
+};
+var DateFieldBuilder = class _DateFieldBuilder {
+  _fast;
+  _from;
+  constructor(fast = { fast: false }, from = { from: null }) {
+    this._fast = fast;
+    this._from = from;
+  }
+  fast() {
+    return new _DateFieldBuilder({ fast: true }, this._from);
+  }
+  from(field) {
+    return new _DateFieldBuilder(this._fast, { from: field });
+  }
+  [BUILD]() {
+    const hasFast = this._fast.fast;
+    const hasFrom = Boolean(this._from.from);
+    if (hasFast && hasFrom) {
+      return {
+        type: "DATE",
+        fast: true,
+        from: this._from.from
+      };
+    }
+    if (hasFast) {
+      return {
+        type: "DATE",
+        fast: true
+      };
+    }
+    if (hasFrom) {
+      return {
+        type: "DATE",
+        from: this._from.from
+      };
+    }
+    return { type: "DATE" };
+  }
+};
+var HybridFieldBuilder = class _HybridFieldBuilder {
+  _noStem;
+  _from;
+  constructor(noStem = { noStem: false }, from = { from: null }) {
+    this._noStem = noStem;
+    this._from = from;
+  }
+  noStem() {
+    return new _HybridFieldBuilder({ noStem: true }, this._from);
+  }
+  from(field) {
+    return new _HybridFieldBuilder(this._noStem, { from: field });
+  }
+  [BUILD]() {
+    return {
+      type: "HYBRID",
+      ...this._noStem.noStem ? { noStem: true } : {},
+      ...this._from.from ? { from: this._from.from } : {}
+    };
+  }
+};
+var KeywordFieldBuilder = class {
+  [BUILD]() {
+    return { type: "KEYWORD" };
+  }
+};
+var FacetFieldBuilder = class {
+  [BUILD]() {
+    return { type: "FACET" };
+  }
+};
+if (typeof atob === "undefined") {
+  global.atob = (b64) => Buffer.from(b64, "base64").toString("utf8");
+}
+
+// lib/redis.ts
+function read(env, ...names) {
+  for (const name of names) {
+    const value = env[name];
+    if (value && value.trim()) return value.trim();
+  }
+  return void 0;
+}
+function redisConfig(env = process.env) {
+  const url = read(env, "UPSTASH_REDIS_REST_URL", "QR_DB_URL");
+  const token = read(env, "UPSTASH_REDIS_REST_TOKEN", "QR_DB_TOKEN");
+  return url && token ? { url, token } : null;
+}
+
 // src/server/store.ts
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -264,9 +474,8 @@ var RedisStore = class {
   }
 };
 function createStore(env) {
-  const url = env.QR_DB_URL;
-  const token = env.QR_DB_TOKEN;
-  if (url && token) return new RedisStore(url.replace(/\/+$/, ""), token);
+  const config = redisConfig(env);
+  if (config) return new RedisStore(config.url.replace(/\/+$/, ""), config.token);
   return new FileStore(env.QR_DB_FILE || ".qrix/dynamic.json");
 }
 

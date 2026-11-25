@@ -6,9 +6,10 @@
  * - `RedisStore` — прод: Upstash Redis по REST, бесплатного тарифа хватает
  *   на первые сотни кодов.
  *
- * Прод-адаптер не тянет SDK: Upstash принимает команды обычным POST, а в
- * serverless-функции лишняя зависимость — это лишний холодный старт.
+ * Прод-адаптер говорит с Upstash по REST напрямую: команды уходят одним
+ * POST, без клиентской библиотеки в горячем пути.
  */
+import { redisConfig } from "../../lib/redis";
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -344,8 +345,8 @@ export class RedisStore implements Store {
 
 /** Выбор адаптера по окружению: есть Redis — используем его, иначе файл. */
 export function createStore(env: Record<string, string | undefined>): Store {
-  const url = env.QR_DB_URL;
-  const token = env.QR_DB_TOKEN;
-  if (url && token) return new RedisStore(url.replace(/\/+$/, ""), token);
+  // имена берём через redisConfig: он понимает и UPSTASH_*, и старые QR_DB_*
+  const config = redisConfig(env);
+  if (config) return new RedisStore(config.url.replace(/\/+$/, ""), config.token);
   return new FileStore(env.QR_DB_FILE || ".qrix/dynamic.json");
 }

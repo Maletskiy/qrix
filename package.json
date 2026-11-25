@@ -17,6 +17,7 @@
     "build:api": "esbuild scripts/api-entry.ts --bundle --platform=node --format=esm --target=node20 --outfile=api/_lib.js --log-level=error"
   },
   "dependencies": {
+    "@upstash/redis": "^1.41.1",
     "motion": "^14.3.0",
     "qrcode-generator": "^1.4.4",
     "react": "^18.3.1",
