@@ -34,7 +34,7 @@ const HIGHLIGHT = [0xea, 0xff, 0xb4];
 const MID = 0.62;
 
 /** Сколько ступеней яркости оставляем после дуотона. */
-const LEVELS = 160;
+const LEVELS = 72;
 
 /** Простое усреднение по квадрату: убирает шум генерации. */
 function boxBlur(src: Float64Array, width: number, height: number, radius: number): Float64Array {
@@ -148,25 +148,100 @@ function process(file: string, levels: number): Processed {
   return { png: PNG.sync.write(png, { colorType: 6, deflateLevel: 9 }), width, height };
 }
 
-/** Кроп по центру до 1.9:1 и рендер в нужной ширине. */
-function render(src: Processed, width: number): Buffer {
-  const { width: sw, height: sh, png } = src;
+/**
+ * Центр масс ярких пикселей: у генераций объект стоит не по центру,
+ * и при кропе композиция уезжает вбок.
+ */
+function centreOfMass(png: PNG): { x: number; y: number } {
+  const { data, width, height } = png;
+  let sumW = 0;
+  let sumX = 0;
+  let sumY = 0;
 
-  // режем по высоте, если картинка выше нужной пропорции, иначе по ширине
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      const l = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+      if (l < 45) continue;
+      const w = l - 45;
+      sumW += w;
+      sumX += x * w;
+      sumY += y * w;
+    }
+  }
+  return sumW > 0 ? { x: sumX / sumW, y: sumY / sumW } : { x: width / 2, y: height / 2 };
+}
+
+/**
+ * Собирает окно нужной пропорции, ставя центр масс объекта в центр кадра.
+ *
+ * Окно не выходит за границы картинки: если объект смещён, окно
+ * уменьшается вокруг него, а не сдвигается за край. Иначе пришлось бы
+ * заполнять пустоту, и шов был бы заметнее, чем смещение.
+ */
+function compose(src: Processed, offsetX: number, offsetY: number, cropW: number, cropH: number): Buffer {
+  const original = PNG.sync.read(src.png);
+  const { width: sw, data } = original;
+  const out = new PNG({ width: cropW, height: cropH });
+
+  for (let y = 0; y < cropH; y++) {
+    for (let x = 0; x < cropW; x++) {
+      const from = ((y + offsetY) * sw + (x + offsetX)) * 4;
+      const to = (y * cropW + x) * 4;
+      out.data[to] = data[from];
+      out.data[to + 1] = data[from + 1];
+      out.data[to + 2] = data[from + 2];
+      out.data[to + 3] = 255;
+    }
+  }
+
+  return PNG.sync.write(out, { colorType: 6, deflateLevel: 9 });
+}
+
+/** Кроп с центрированием и рендер в нужной ширине. */
+function render(src: Processed, width: number): Buffer {
+  const { width: sw, height: sh } = src;
+  const centre = centreOfMass(PNG.sync.read(src.png));
+
+  // базовое окно — во всю ширину
   let cropW = sw;
   let cropH = Math.round(sw / RATIO);
   if (cropH > sh) {
     cropH = sh;
     cropW = Math.round(sh * RATIO);
   }
-  const offsetX = Math.round((sw - cropW) / 2);
-  const offsetY = Math.round((sh - cropH) / 2);
 
-  const href = `data:image/png;base64,${png.toString("base64")}`;
+  // насколько можно сдвинуть окно, чтобы оно осталось внутри картинки
+  const roomLeft = Math.max(0, centre.x - cropW / 2);
+  const roomRight = Math.max(0, sw - centre.x - cropW / 2);
+  const slack = Math.min(roomLeft, roomRight);
+
+  if (slack < 1) {
+    // объекта не сдвинуть — уменьшаем окно вокруг него, пока не влезет
+    const maxHalf = Math.min(centre.x, sw - centre.x);
+    const maxHalfV = Math.min(centre.y, sh - centre.y);
+    cropW = Math.floor(Math.min(maxHalf * 2, sw, maxHalfV * 2 * RATIO));
+    cropH = Math.round(cropW / RATIO);
+    if (cropH > sh) {
+      cropH = sh;
+      cropW = Math.round(sh * RATIO);
+    }
+  }
+
+  const offsetX = Math.round(
+    Math.min(sw - cropW, Math.max(0, centre.x - cropW / 2))
+  );
+  const offsetY = Math.round(
+    Math.min(sh - cropH, Math.max(0, centre.y - cropH / 2))
+  );
+
+  const framed = compose(src, offsetX, offsetY, cropW, cropH);
+  const href = `data:image/png;base64,${framed.toString("base64")}`;
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${Math.round(
     width / RATIO
-  )}" viewBox="${offsetX} ${offsetY} ${cropW} ${cropH}">
-    <image x="0" y="0" width="${sw}" height="${sh}" href="${href}" preserveAspectRatio="none"/>
+  )}" viewBox="0 0 ${cropW} ${cropH}">
+    <image x="0" y="0" width="${cropW}" height="${cropH}" href="${href}" preserveAspectRatio="none"/>
   </svg>`;
 
   return Buffer.from(new Resvg(svg, { fitTo: { mode: "width", value: width } }).render().asPng());
