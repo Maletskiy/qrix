@@ -9,7 +9,6 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { BUNDLES, LANGS, PAGE_COUNT, SITE } from "../src/landing";
 import { renderHub, renderPage } from "../src/landing/render";
-import { coverPng } from "./lib/cover";
 import { COVER_KINDS } from "../src/landing/types";
 import { encodeMatrix } from "../src/lib/qr";
 import { renderSvg } from "../src/lib/render";
@@ -104,15 +103,6 @@ function sitemap(): string {
 
 async function main(): Promise<void> {
   let written = 0;
-
-  // обложки: по одной на тему, без языка — графика одинаковая
-  const coverDir = join(OUT, "covers");
-  mkdirSync(coverDir, { recursive: true });
-  for (const kind of COVER_KINDS) {
-    // большой PNG — для og:image, маленький — для карточек списков
-    writeFileSync(join(coverDir, `${kind}.png`), coverPng(kind, 1200));
-    writeFileSync(join(coverDir, `${kind}-sm.png`), coverPng(kind, 600));
-  }
 
   // списки гайдов: /<lang>/
   for (const lang of LANGS) {
