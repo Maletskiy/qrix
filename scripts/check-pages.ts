@@ -157,7 +157,7 @@ function main(): void {
       ok(ogImage === `${SITE}${cover}`, where, `og:image: ${ogImage ?? "нет"}`);
 
       // --- карточки других гайдов: у каждой есть картинка ---
-      const cardImgs = [...html.matchAll(/<li><a href="[^"]+"><img src="([^"]+)"/g)].map((m) => m[1]);
+      const cardImgs = [...html.matchAll(/<li><a href="[^"]+"><span class="guides__frame"><img src="([^"]+)"/g)].map((m) => m[1]);
       ok(cardImgs.length >= 1, where, "в карточках нет превью");
       for (const src of cardImgs) {
         ok(src.endsWith("-sm.png"), where, `карточка грузит полную обложку: ${src}`);
@@ -203,7 +203,7 @@ function main(): void {
       ok(hreflangs.includes(code), where, `нет hreflang ${code}`);
     }
 
-    const hubImgs = [...html.matchAll(/<li><a href="[^"]+"><img src="([^"]+)"/g)].map((m) => m[1]);
+    const hubImgs = [...html.matchAll(/<li><a href="[^"]+"><span class="guides__frame"><img src="([^"]+)"/g)].map((m) => m[1]);
     ok(hubImgs.length === PAGE_COUNT, where, `превью в списке: ${hubImgs.length}`);
     for (const src of hubImgs) {
       ok(existsSync(join(OUT, src)), where, `нет файла превью ${src}`);

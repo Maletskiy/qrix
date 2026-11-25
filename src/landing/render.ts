@@ -207,7 +207,9 @@ function guideCards(
     .filter(({ index }) => index !== skipIndex)
     .map(
       ({ page, index }) =>
-        `          <li><a href="${pageUrl(site, bundles, lang, index)}"><img src="${coverThumb(kindOf(index))}" alt="" width="600" height="315" loading="lazy" decoding="async"><strong><span>${esc(
+        `          <li><a href="${pageUrl(site, bundles, lang, index)}"><span class="guides__frame"><img src="${coverThumb(
+          kindOf(index)
+        )}" alt="" width="600" height="315" loading="lazy" decoding="async"></span><strong><span>${esc(
           page.title
         )}</span></strong><span class="guides__note">${esc(short(page.lede, 160))}</span></a></li>`
     )

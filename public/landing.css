@@ -571,15 +571,29 @@ code {
   background: var(--panel-2);
 }
 
+/* Рамка держит пропорцию и обрезает: при наведении картинка растёт
+   внутри неё, а не вылезает за края карточки. */
+.guides__frame {
+  display: block;
+  overflow: hidden;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  background: var(--panel-2);
+  /* сглаживает скругление при увеличении */
+  transform: translateZ(0);
+}
+
 .guides__list img {
   display: block;
   width: 100%;
   height: auto;
   aspect-ratio: 1200 / 630;
   object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 14px;
-  background: var(--panel-2);
+  transition: transform 0.5s cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+.guides__list a:hover .guides__frame img {
+  transform: scale(1.05);
 }
 
 .guides__list strong {
@@ -687,6 +701,10 @@ code {
   }
 
   .btn:hover {
+    transform: none;
+  }
+
+  .guides__list a:hover .guides__frame img {
     transform: none;
   }
 }
