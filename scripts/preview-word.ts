@@ -31,9 +31,6 @@ const RADIUS = 4.4;
 /** Зазор между модулями фона. */
 const BG_GAP = 5;
 
-/** Доля ширины кадра, которую должно занять слово. */
-const WORD_WIDTH_RATIO = 0.62;
-
 /** Утолщение букв: вариативный Medium через opentype.js недоступен. */
 const STROKE = 7;
 
@@ -66,12 +63,20 @@ async function loadFont(): Promise<opentype.Font> {
 
 /* ---------- маска слова ---------- */
 
-/** Кегль, при котором слово занимает заданную долю ширины кадра. */
+/**
+ * Кегль одинаковый для всех слов: масштаб задают буквы, а не длина слова.
+ * Длинное слово при необходимости ужимается, но не наоборот — иначе
+ * «Logo» из четырёх букв выходил крупнее «Bitcoin» из семи.
+ */
+const BASE_SIZE = 330;
+/** Предел, дальше которого слово упирается в поля кадра. */
+const MAX_WIDTH_RATIO = 0.86;
+
 function fitSize(font: opentype.Font, text: string): number {
-  const probe = font.getPath(text, 0, 0, 100);
-  const box = probe.getBoundingBox();
+  const box = font.getPath(text, 0, 0, BASE_SIZE).getBoundingBox();
   const width = box.x2 - box.x1;
-  return Math.round((W * WORD_WIDTH_RATIO * 100) / Math.max(1, width));
+  const limit = W * MAX_WIDTH_RATIO;
+  return width > limit ? Math.round((BASE_SIZE * limit) / width) : BASE_SIZE;
 }
 
 /** Путь слова, вписанный в кадр по центру. */
