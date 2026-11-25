@@ -11,3 +11,5 @@ scripts/*.mjs
 !.env.example
 *.tsbuildinfo
 .npm-cache
+# локальная база динамических кодов (dev)
+.qrix/

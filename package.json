@@ -11,7 +11,9 @@
     "deploy": "env -u npm_config_cache npx --yes vercel --global-config ./.vercel-cli --prod --yes",
     "build:pages": "esbuild scripts/build-pages.ts --bundle --platform=node --format=esm --outfile=scripts/build-pages.mjs --external:@resvg/resvg-js --external:wawoff2 --external:opentype.js --log-level=error && node scripts/build-pages.mjs",
     "check:pages": "esbuild scripts/check-pages.ts --bundle --platform=node --format=esm --outfile=scripts/check-pages.mjs --external:@resvg/resvg-js --external:jsqr --external:pngjs --log-level=error && node scripts/check-pages.mjs",
-    "build:covers": "esbuild scripts/build-covers.ts --bundle --platform=node --format=esm --outfile=scripts/build-covers.mjs --external:@resvg/resvg-js --external:wawoff2 --external:opentype.js --external:pngjs --log-level=error && node scripts/build-covers.mjs"
+    "build:covers": "esbuild scripts/build-covers.ts --bundle --platform=node --format=esm --outfile=scripts/build-covers.mjs --external:@resvg/resvg-js --external:wawoff2 --external:opentype.js --external:pngjs --log-level=error && node scripts/build-covers.mjs",
+    "dev:api": "esbuild scripts/dev-api.ts --bundle --platform=node --format=esm --outfile=scripts/dev-api.mjs --log-level=error && node scripts/dev-api.mjs",
+    "check:dynamic": "esbuild scripts/check-dynamic.ts --bundle --platform=node --format=esm --outfile=scripts/check-dynamic.mjs --log-level=error && node scripts/check-dynamic.mjs"
   },
   "dependencies": {
     "motion": "^14.3.0",
@@ -21,6 +23,7 @@
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
+    "@types/node": "^20.19.43",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
