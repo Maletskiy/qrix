@@ -211,12 +211,16 @@ function render(src: Processed, width: number): Buffer {
     cropW = Math.round(sh * RATIO);
   }
 
-  // насколько можно сдвинуть окно, чтобы оно осталось внутри картинки
+  // центрируем только те картинки, где объект заметно уехал от середины.
+  // Мелкое смещение — это композиция автора, её трогать не нужно.
+  const shift = Math.abs(centre.x - sw / 2);
+  const OFF_CENTRE = sw * 0.15;
+
   const roomLeft = Math.max(0, centre.x - cropW / 2);
   const roomRight = Math.max(0, sw - centre.x - cropW / 2);
   const slack = Math.min(roomLeft, roomRight);
 
-  if (slack < 1) {
+  if (shift > OFF_CENTRE && slack < 1) {
     // объекта не сдвинуть — уменьшаем окно вокруг него, пока не влезет
     const maxHalf = Math.min(centre.x, sw - centre.x);
     const maxHalfV = Math.min(centre.y, sh - centre.y);
@@ -228,9 +232,8 @@ function render(src: Processed, width: number): Buffer {
     }
   }
 
-  const offsetX = Math.round(
-    Math.min(sw - cropW, Math.max(0, centre.x - cropW / 2))
-  );
+  const targetX = shift > OFF_CENTRE ? centre.x : sw / 2;
+  const offsetX = Math.round(Math.min(sw - cropW, Math.max(0, targetX - cropW / 2)));
   const offsetY = Math.round(
     Math.min(sh - cropH, Math.max(0, centre.y - cropH / 2))
   );
