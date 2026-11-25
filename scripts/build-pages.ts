@@ -10,7 +10,7 @@ import { dirname, join } from "node:path";
 import { BUNDLES, LANGS, PAGE_COUNT, SITE } from "../src/landing";
 import { renderHub, renderPage } from "../src/landing/render";
 import { coverPng } from "./lib/cover";
-import type { CoverKind } from "./lib/cover";
+import { COVER_KINDS } from "../src/landing/types";
 import { encodeMatrix } from "../src/lib/qr";
 import { renderSvg } from "../src/lib/render";
 import type { RenderOptions } from "../src/lib/render";
@@ -21,9 +21,6 @@ const OUT = "dist";
  * Логотип для страницы «код с логотипом»: тот же знак Qrix, вшитый в код
  * настоящими путями. Читается из public/ и не зависит от сборки приложения.
  */
-/** Мотив обложки по порядку страниц: Wi-Fi, лого, биткоин, SVG. */
-const COVER_KINDS: CoverKind[] = ["wifi", "logo", "bitcoin", "svg"];
-
 const LOGO =
   "data:image/svg+xml;base64," +
   readFileSync(join("public", "qrix-badge.svg")).toString("base64");
@@ -108,6 +105,15 @@ function sitemap(): string {
 async function main(): Promise<void> {
   let written = 0;
 
+  // обложки: по одной на тему, без языка — графика одинаковая
+  const coverDir = join(OUT, "covers");
+  mkdirSync(coverDir, { recursive: true });
+  for (const kind of COVER_KINDS) {
+    // большой PNG — для og:image, маленький — для карточек списков
+    writeFileSync(join(coverDir, `${kind}.png`), coverPng(kind, 1200));
+    writeFileSync(join(coverDir, `${kind}-sm.png`), coverPng(kind, 600));
+  }
+
   // списки гайдов: /<lang>/
   for (const lang of LANGS) {
     write(join(lang, "index.html"), renderHub({ lang, bundles: BUNDLES, site: SITE }));
@@ -126,21 +132,6 @@ async function main(): Promise<void> {
       });
       write(join(lang, page.slug, "index.html"), html);
 
-      // обложка: og:image и картинка в карточках списка
-      const coverArgs = {
-        title: page.title,
-        eyebrow: "Qrix · guide",
-        qrSvg: makeQr(page.demo.value, index),
-        footnote: "qr-ix.com",
-        index: index + 1,
-        total: PAGE_COUNT,
-        kind: COVER_KINDS[index],
-      };
-      const coverDir = join(OUT, "covers");
-      mkdirSync(coverDir, { recursive: true });
-      // большой PNG — для og:image, маленький — для карточек списков
-      writeFileSync(join(coverDir, `${lang}-${page.slug}.png`), await coverPng(coverArgs, 1200));
-      writeFileSync(join(coverDir, `${lang}-${page.slug}-sm.png`), await coverPng(coverArgs, 600));
 
       written++;
     }

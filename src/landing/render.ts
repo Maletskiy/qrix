@@ -6,7 +6,8 @@
  * QR-код на странице — настоящий: его рисует тот же renderSvg, что и в
  * генераторе, и он декодируется (проверяется в scripts/check-pages.ts).
  */
-import type { Lang, LandingBundle } from "./types";
+import { COVER_KINDS } from "./types";
+import type { CoverKind, Lang, LandingBundle } from "./types";
 
 export type RenderArgs = {
   index: number;
@@ -61,13 +62,20 @@ function pageUrl(
 }
 
 /** Обложка гайда: относительный путь для <img>, абсолютный — для og:image. */
-function coverPath(lang: Lang, slug: string): string {
-  return `/covers/${lang}-${slug}.png`;
+/* Обложка зависит только от темы: она визуальная, без текста, поэтому
+   одинаковая для всех языков и кэшируется один раз. */
+function coverPath(kind: CoverKind): string {
+  return `/covers/${kind}.png`;
 }
 
 /** Та же обложка вдвое меньше — её показывают карточки в списках. */
-function coverThumb(lang: Lang, slug: string): string {
-  return `/covers/${lang}-${slug}-sm.png`;
+function coverThumb(kind: CoverKind): string {
+  return `/covers/${kind}-sm.png`;
+}
+
+/** Тема страницы по её позиции в наборе. */
+function kindOf(index: number): CoverKind {
+  return COVER_KINDS[index];
 }
 
 function hubUrl(site: string, lang: Lang): string {
@@ -199,10 +207,7 @@ function guideCards(
     .filter(({ index }) => index !== skipIndex)
     .map(
       ({ page, index }) =>
-        `          <li><a href="${pageUrl(site, bundles, lang, index)}"><img src="${coverThumb(
-          lang,
-          page.slug
-        )}" alt="" width="600" height="315" loading="lazy" decoding="async"><strong><span>${esc(
+        `          <li><a href="${pageUrl(site, bundles, lang, index)}"><img src="${coverThumb(kindOf(index))}" alt="" width="600" height="315" loading="lazy" decoding="async"><strong><span>${esc(
           page.title
         )}</span></strong><span class="guides__note">${esc(short(page.lede, 160))}</span></a></li>`
     )
@@ -280,7 +285,7 @@ ${section.paragraphs.map((text) => `          <p>${esc(text)}</p>`).join("\n")}
     urls,
     jsonLd,
     type: "article",
-    image: `${site}${coverPath(lang, page.slug)}`,
+    image: `${site}${coverPath(kindOf(index))}`,
   })}
 </head>
 <body>

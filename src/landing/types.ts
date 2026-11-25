@@ -72,3 +72,9 @@ export type LandingBundle = {
   chrome: LandingChrome;
   pages: LandingPage[];
 };
+
+/** Тема гайда: от неё зависит графика обложки. */
+export type CoverKind = "wifi" | "logo" | "bitcoin" | "svg";
+
+/** Порядок тем совпадает с порядком страниц в каждом языке. */
+export const COVER_KINDS: CoverKind[] = ["wifi", "logo", "bitcoin", "svg"];
