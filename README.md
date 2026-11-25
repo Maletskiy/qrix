@@ -141,7 +141,7 @@ npm run check:pages  # verify the generated output
 
 `check:pages` decodes the code on every page and compares it with the promised string, then checks canonical, all six `hreflang` entries, `title`/`description` lengths, `FAQPage` markup, and that cross-links resolve. It belongs in CI next to `verify` — one command, though the workflow has no such step yet.
 
-Covers (`dist/covers/`) are images drawn by an external model, stored in `assets/covers/` and processed by `scripts/build-covers.ts`: duotone into the brand palette (background #0F1113, accent #D1FE17), percentile contrast matching, a shared vignette and a centre crop to 1.9:1. That is what makes four independent generations read as one series. A cover depends only on the topic, so there are four files rather than twenty, and every language shares one `og:image`. Sizes are 1200×630 for social and 600×315 for cards.
+Covers (`dist/covers/`) are rendered by code on every build: a word made of white modules on a chaotic green field, a left-to-right gradient from green to white, and the field dimming around the word. There are no bitmaps in the repo — `scripts/build-covers.ts` renders them through `scripts/preview-word.ts`. Sizes are 1200×630 for social and 600×315 for cards; a cover depends only on the topic, so there are four files rather than twenty.
 
 Page type is the same Google Sans as the generator: the files in `public/fonts/` are shared, so the guides and the app read as one product. Styles live in `public/landing.css`.
 
