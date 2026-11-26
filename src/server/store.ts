@@ -18,6 +18,8 @@ import type { Code, DayStats } from "./schema";
 export type RateLimit = { ok: boolean; remaining: number };
 
 export interface Store {
+  /** Какое хранилище подключено: видно в /api/health и в логах. */
+  readonly kind: "file" | "redis";
   getCode(slug: string): Promise<Code | null>;
   putCode(code: Code): Promise<void>;
   deleteCode(slug: string): Promise<void>;
@@ -63,6 +65,7 @@ type FileState = {
  * для проверок и `npm run dev` этого достаточно.
  */
 export class FileStore implements Store {
+  readonly kind = "file" as const;
   private state: FileState;
   private queue: Promise<unknown> = Promise.resolve();
 
@@ -206,6 +209,8 @@ export class FileStore implements Store {
  * - `rl:<bucket>` — счётчик окна.
  */
 export class RedisStore implements Store {
+  readonly kind = "redis" as const;
+
   constructor(
     private readonly url: string,
     private readonly token: string

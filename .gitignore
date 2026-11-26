@@ -13,3 +13,6 @@ scripts/*.mjs
 .npm-cache
 # локальная база динамических кодов (dev)
 .qrix/
+
+# креды Upstash на время настройки
+upstash-key.md

@@ -18,7 +18,10 @@ function build(): Handler | null {
   if (failure) return null;
 
   try {
+    // окружение передаём целиком: в нём и стандартные UPSTASH_*, и
+    // исторические QR_DB_*; явные поля оставлены для наглядности
     ready = createHandler({
+      ...process.env,
       QR_DB_URL: process.env.QR_DB_URL,
       QR_DB_TOKEN: process.env.QR_DB_TOKEN,
       QR_DB_FILE: process.env.QR_DB_FILE,

@@ -185,7 +185,7 @@ export function createHandler(env: Env): Handler {
         if (!limit.ok) throw new ApiError(429, "rate_limited", "Слишком много запросов, подождите минуту");
 
         if (path === "/api/health" && method === "GET") {
-          json(res, 200, { ok: true, store: env.QR_DB_URL ? "redis" : "file" });
+          json(res, 200, { ok: true, store: store.kind });
           return;
         }
 

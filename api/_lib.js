@@ -239,6 +239,7 @@ var FileStore = class {
     this.state = this.load();
   }
   path;
+  kind = "file";
   state;
   queue = Promise.resolve();
   load() {
@@ -356,6 +357,7 @@ var RedisStore = class {
   }
   url;
   token;
+  kind = "redis";
   /** Выполняет несколько команд одним запросом — так быстрее и дешевле. */
   async pipeline(commands) {
     const res = await fetch(`${this.url}/pipeline`, {
@@ -830,7 +832,7 @@ function createHandler(env) {
         const limit = await store.rateLimit(`api:${visitorId(ip, salt)}`, API_LIMIT, 60);
         if (!limit.ok) throw new ApiError(429, "rate_limited", "\u0421\u043B\u0438\u0448\u043A\u043E\u043C \u043C\u043D\u043E\u0433\u043E \u0437\u0430\u043F\u0440\u043E\u0441\u043E\u0432, \u043F\u043E\u0434\u043E\u0436\u0434\u0438\u0442\u0435 \u043C\u0438\u043D\u0443\u0442\u0443");
         if (path === "/api/health" && method === "GET") {
-          json(res, 200, { ok: true, store: env.QR_DB_URL ? "redis" : "file" });
+          json(res, 200, { ok: true, store: store.kind });
           return;
         }
         if (path === "/api/codes" && method === "POST") {
@@ -955,6 +957,7 @@ function build() {
   if (failure) return null;
   try {
     ready = createHandler({
+      ...process.env,
       QR_DB_URL: process.env.QR_DB_URL,
       QR_DB_TOKEN: process.env.QR_DB_TOKEN,
       QR_DB_FILE: process.env.QR_DB_FILE,
